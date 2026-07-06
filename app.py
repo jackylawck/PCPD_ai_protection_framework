@@ -1,103 +1,99 @@
 import streamlit as st
 
-# 設定網頁標題與排版
+# 1. 設定網頁與企業級 UI
 st.set_page_config(
-    page_title="PCPD AI Protection Framework Evaluator",
+    page_title="PCPD AI Protection Framework Guide",
     page_icon="🛡️",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
-# 隱藏預設的 Streamlit 選單，提升企業產品專業度
-hide_streamlit_style = """
-<style>
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-</style>
-"""
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+# 隱藏 Streamlit 預設選單，提升專業度
+st.markdown("<style>#MainMenu {visibility: hidden;} footer {visibility: hidden;}</style>", unsafe_allow_html=True)
 
-# 側邊欄：展示 PCPD 模範框架核心與開發者權威背書
+# 官方文件公開網址
+ZH_PDF_URL = "https://www.pcpd.org.hk/tc_chi/resources_centre/publications/files/ai_protection_framework.pdf"
+EN_PDF_URL = "https://www.pcpd.org.hk/english/resources_centre/publications/files/ai_protection_framework.pdf"
+
+# 2. 側邊欄：官方權威背書與導讀
 with st.sidebar:
     st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Emblem_of_Hong_Kong.svg/120px-Emblem_of_Hong_Kong.svg.png", width=80)
     st.title("PCPD AI Governance")
-    st.markdown("### 《人工智能：個人資料保障模範框架》審計代理")
+    st.markdown("### 官方指引快速連結")
+    st.link_button("繁體中文官方 PDF 🔗", ZH_PDF_URL)
+    st.link_button("English Official PDF 🔗", EN_PDF_URL)
     st.markdown("---")
-    st.markdown("**評估基準涵蓋四大核心：**")
-    st.markdown("1. AI 策略及管治\n2. 風險評估及人為監督\n3. AI 模型的定製與管理\n4. 與持份者的溝通及交流")
-    st.markdown("---")
-    st.markdown("### 關於本系統")
-    st.info(
-        "本自動化合規審計沙盒嚴格遵循香港個人資料私隱專員公署 (PCPD) 於 2024 年發布之指引，"
-        "旨在協助企業將 AI 治理原則轉化為可執行的代碼與結構化風險監督 (Governance-as-Code)。"
-    )
+    st.markdown("**💡 公共利益倡導：**")
+    st.caption("本系統為開源合規沙盒，直接對接香港個人資料私隱專員公署 (PCPD) 2024 年最新發布之《人工智能：個人資料保障模範框架》，協助企業零成本落地 AI 管治。")
 
-# 主畫面設計
-st.title("🛡️ PCPD AI 個人資料保障模範框架：合規評估系統")
-st.markdown("### 企業 AI 導入前置審查 (Enterprise AI Deployment Pre-Audit)")
-st.write("請描述您的企業準備導入的 AI 應用場景，系統將依據 PCPD 指引自動評估潛在私隱風險、建議的人為監督層級，並生成合規行動清單。")
+# 3. 主畫面設計
+st.title("🛡️ PCPD AI 個人資料保障模範框架：互動式合規評估系統")
+st.subheader("Enterprise AI Deployment Pre-Audit (100% Free Open-Access Guide)")
+st.markdown("請選擇您的企業類型與預期導入的 AI 場景，系統將根據 PCPD 官方指引的四大核心範疇，自動對照並產出應對的合規稽核清單。")
 
-# 使用者輸入區
+# 4. 使用者互動輸入區
 with st.form("audit_form"):
-    company_context = st.selectbox(
-        "選擇企業類型",
-        ["香港金融機構", "大型跨國企業 (HR 數位轉型)", "社福與非牟利機構", "醫療與健康科技", "零售與電子商務"]
-    )
-    
+    col1, col2 = st.columns(2)
+    with col1:
+        company_context = st.selectbox(
+            "1. 選擇企業類型 (Enterprise Type)",
+            ["大型跨國企業 (HR 數位轉型 / 考績預測)", "香港金融機構 (信貸評估 / 欺詐偵測)", "醫療與健康科技 (AI 輔助影像分析)", "零售與電子商務 (AI 聊天機械人推薦)", "社福與非牟利機構"]
+        )
+    with col2:
+        human_oversight_pref = st.selectbox(
+            "2. 預期的人為監督模式 (Intended Human Oversight)",
+            ["人在環中 (Human-in-the-loop) - 人類保留最終控制權", "人為管控 (Human-in-command) - 人類監督系統，必要時介入", "人在環外 (Human-out-of-the-loop) - 完全自動化決策"]
+        )
+        
     ai_use_case = st.text_area(
-        "詳細描述您的 AI 應用場景 (Use Case)",
-        placeholder="例如：我們計劃導入 M365 Copilot 結合內部 HR 系統，用於分析員工績效數據並預測離職率..."
+        "3. 請簡述您的 AI 應用情境與涉及的個人資料 (例如：收集員工年資、考績以預測離職率)",
+        placeholder="在此輸入具體情境..."
     )
     
-    submitted = st.form_submit_button("執行 PCPD 框架合規審計 🔍")
+    submitted = st.form_submit_button("執行 PCPD 框架對照審查 🔍")
 
-# 模擬後端 LLM 處理邏輯與輸出展示
+# 5. 動態合規對照邏輯 (依據上傳的官方 PDF 內容精準分類)
 if submitted:
-    if not ai_use_case:
-        st.warning("⚠️ 請輸入具體的 AI 應用場景以進行審計。")
-    else:
-        with st.spinner("🔄 正在連結 PCPD 《人工智能：個人資料保障模範框架》知識庫進行深度審計..."):
+    st.success("✅ 稽核清單已根據 PCPD 2024《模範框架》官方文件生成。請點擊下方分頁查看各部分的法定與道德要求：")
+    
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "📊 第一部：AI 策略及管治", 
+        "⚖️ 第二部：風險評估與監督", 
+        "⚙️ 第三部：模型定製與管理", 
+        "📢 第四部：持份者溝通"
+    ])
+    
+    with tab1:
+        st.subheader("第一部：AI 策略及管治 (Part I: AI Strategy & Governance)")
+        st.markdown(f"**💡 針對 [{company_context}] 的最高管理層問責建議：**")
+        st.markdown("- **成立 AI 管治委員會：** 高級管理層（如行政層或董事會層）必須支持並積極參與。建議由 C-Level 高管領導跨部門團隊（包含 HR、法律合規、數據科學家）。")
+        st.markdown("- **建立 AI 清單 (AI Inventory)：** 機構應建立 AI 清單以實施管治措施，並列明機構中不可接受的用途。")
+        st.markdown(f"[➡️ 點此至官方 PDF 閱讀第一部詳細條文 (第 10 頁)]({ZH_PDF_URL}#page=10)")
+        
+    with tab2:
+        st.subheader("第二部：風險評估及人為監督 (Part II: Risk Assessment & Human Oversight)")
+        st.markdown("**⚖️ 風險判定與人為監督層級對照：**")
+        
+        # 根據用戶選擇的場景或監督模式進行動態警示
+        if "HR" in company_context or "信貸" in company_context or "醫療" in company_context:
+            st.error("🔴 **高風險判定 (High Risk Scenario):** 依據 PCPD 指引，涉及「求職者評估、工作表現評核」或「信貸可靠程度自動化決策」屬於高風險用例，可能對個人造成重大影響。")
+            if human_oversight_pref != "人在環中 (Human-in-the-loop) - 人類保留最終控制權":
+                st.warning("⚠️ **管治衝突警告：** 官方指引第 32 條明確規定，高風險 AI 系統**應採取「人在環中」(Human-in-the-loop)** 模式，人類決策者必須保留控制權，防止完全自動化出錯。")
+        else:
+            st.info("🟡 **一般風險判定：** 請持續進行私隱影響評估 (PIA)，確保剩餘風險降至可接受水平。")
             
-            # TODO: 這裡未來可串接 OpenAI API 傳入知識庫，目前先展示高質量的模版輸出
-            
-            st.success("✅ 審計完成。以下為基於 PCPD 模範框架之評估報告：")
-            
-            # 建立分頁標籤來結構化展示四大核心評估
-            tab1, tab2, tab3, tab4 = st.tabs([
-                "📊 第一部：策略及管治", 
-                "⚖️ 第二部：風險評估與監督", 
-                "⚙️ 第三部：模型定製與管理", 
-                "📢 第四部：持份者溝通"
-            ])
-            
-            with tab1:
-                st.subheader("管治架構與問責建議")
-                st.write("**合規狀態：** 需成立跨部門 AI 管治委員會")
-                st.info(
-                    "PCPD 建議：高級管理層的支持是負責任 AI 的成功要素。您的場景涉及內部敏感數據，"
-                    "建議由高管領導，包含資料科學家、法律合規及 HR 專業人員組成跨部門團隊進行監督。"
-                )
-                
-            with tab2:
-                st.subheader("私隱風險判定與人為監督層級")
-                st.markdown("**判定風險等級：** 🔴 **高風險 (High Risk)**")
-                st.write("此場景可能對個人職涯與評核造成重大影響。")
-                st.error(
-                    "**法定監督要求：人在環中 (Human-in-the-loop)**\n\n"
-                    "依據 PCPD 第二部指引，人類決策者必須在決策過程中保留控制權，防止 AI 出錯或產生不當決定。不能採用完全自動化 (Human-out-of-the-loop) 模式。"
-                )
-                
-            with tab3:
-                st.subheader("數據準備與資料最少化 (Data Minimisation)")
-                st.write("**合規行動清單：**")
-                st.checkbox("確保收集的員工數據（如年資、考績）符合《私隱條例》保障資料第1原則（足夠但不超乎適度）。", value=True)
-                st.checkbox("實施私隱增強技術 (PETs)，如假名化或匿名化處理敏感特徵。")
-                st.checkbox("持續監察 AI 模型，防止『模型漂移』導致預測偏見。")
-                
-            with tab4:
-                st.subheader("透明度與可解釋性 (Explainable AI)")
-                st.info(
-                    "**披露要求：**\n"
-                    "必須向受影響的員工清楚披露 AI 系統的使用情況，並提供足夠的資訊說明 AI 參與績效評估的程度。\n"
-                    "**建議提供人為介入選項：** 容許員工對 AI 輸出的結果提出異議或要求合規人員重新審視。"
-                )
+        st.markdown(f"[➡️ 點此至官方 PDF 閱讀第二部詳細條文 (第 20 頁)]({ZH_PDF_URL}#page=20)")
+        
+    with tab3:
+        st.subheader("第三部：AI 模型的定製與系統管理 (Part III: Customisation & Management)")
+        st.markdown("**⚙️ 數據準備與資訊保安行動稽核表：**")
+        st.checkbox("**貫徹資料最少化 (Data Minimisation)：** 是否已移除或假名化與目的無關的敏感特徵（如姓名、身份證號）？（指引第 41 條）", value=True)
+        st.checkbox("**防範模型漂移 (Model Drift)：** 已指派專人定期檢視並以新數據微調模型，防止表現隨時間衰退。（指引第 48 條）")
+        st.checkbox("**對抗式攻擊防禦：** 針對輸入端實施內部指引（如限制員工輸入客戶機密隱私），並考慮進行紅隊演練。")
+        st.markdown(f"[➡️ 點此至官方 PDF 閱讀第三部詳細條文 (第 27 頁)]({ZH_PDF_URL}#page=27)")
+        
+    with tab4:
+        st.subheader("第四部：與持份者的溝通及交流 (Part IV: Stakeholder Engagement)")
+        st.markdown("**📢 透明度與可解釋性 (Transparency & Explainability) 揭露要求：**")
+        st.markdown("- **顯著披露：** 除非使用情況顯而易見，否則必須向受影響的個人（如員工或客戶）清楚披露 AI 的使用。")
+        st.markdown("- **提供救濟途徑：** 當 AI 輸出結果對個人造成重大影響時，機構**應盡可能提供管道讓個人尋求合理解釋、表達反饋及要求人為介入**。")
+        st.markdown(f"[➡️ 點此至官方 PDF 閱讀第四部詳細條文 (第 40 頁)]({ZH_PDF_URL}#page=40)")
