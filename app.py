@@ -2,335 +2,203 @@ import streamlit as st
 import re
 
 # ==========================================
-# 1. Page Configuration & UI Initialization
+# 1. 頁面配置與高管級 UI 設定
 # ==========================================
 st.set_page_config(
-    page_title="PCPD AI Governance Workspace (AIGP v2.1 Aligned)",
+    page_title="PCPD AI Model Framework Intelligence Workspace",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# 隱藏 Streamlit 預設選單，提升企業產品專業度
 st.markdown("""
     <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
+    #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
     .stCheckbox > label {font-weight: 500;}
     </style>
 """, unsafe_allow_html=True)
 
-# 官方文件公開網址
+# 香港個人資料私隱專員公署 (PCPD) 官方文件公開網址
 ZH_PDF_URL = "https://www.pcpd.org.hk/tc_chi/resources_centre/publications/files/ai_protection_framework.pdf"
 EN_PDF_URL = "https://www.pcpd.org.hk/english/resources_centre/publications/files/ai_protection_framework.pdf"
 
 # Initialize Session State
-if 'lang' not in st.session_state:
-    st.session_state.lang = '繁體中文'
-if 'messages' not in st.session_state:
-    st.session_state.messages = []
-if "audit_performed" not in st.session_state:
-    st.session_state.audit_performed = False
-if "company_context" not in st.session_state:
-    st.session_state.company_context = "大型跨國企業 (HR 數位轉型 / 考績預測)"
-if "human_oversight_pref" not in st.session_state:
-    st.session_state.human_oversight_pref = "人在環中 (Human-in-the-loop)"
+if 'lang' not in st.session_state: st.session_state.lang = '繁體中文'
+if 'messages' not in st.session_state: st.session_state.messages = []
+if "audit_performed" not in st.session_state: st.session_state.audit_performed = False
+if "company_context" not in st.session_state: st.session_state.company_context = "大型跨國企業 (HR 數位轉型 / 考績預測)"
+if "human_oversight_pref" not in st.session_state: st.session_state.human_oversight_pref = "人在環中 (Human-in-the-loop)"
+
+is_zh = st.session_state.lang == '繁體中文'
 
 # ==========================================
-# 2. Dual-Layer Knowledge Base & Risk Matrix
+# 2. 結構化風險字典矩陣 (基於 PCPD 2024 官方高風險定義修正)
 # ==========================================
-# 結構化風險字典矩陣 (Bilingual Risk Mapping Matrix)
+# 依據官方文件第 25 頁圖 12 (Figure 12: Examples of AI Use Cases that May Incur Higher Risk) 精準映射
 RISK_MATRIX = {
     "大型跨國企業 (HR 數位轉型 / 考績預測)": {
         "level": "HIGH", 
-        "zh_reason": "涉及求職者評估、工作表現評核或終止僱傭合約，可能對個人職涯與法律權益造成重大影響。",
-        "en_reason": "Involves assessment of job applicants, evaluation of job performance or termination of employment contracts, which may significantly impact individuals' careers."
+        "zh_reason": "依據 PCPD《模範框架》第 25 頁圖 12 明文規定，涉及「求職者評估、工作表現評核或終止僱傭合約」之場景，屬法定高風險用例。",
+        "en_reason": "Per PCPD Model Framework (P.29, Fig 12), 'Assessment of job applicants, evaluation of job performance or termination of employment contracts' is strictly classified as High Risk."
     },
     "香港金融機構 (信貸評估 / 欺詐偵測)": {
         "level": "HIGH", 
-        "zh_reason": "涉及評估個人的信用可靠程度以作出自動化財務決策，可能令個人無法獲得信貸安排。",
-        "en_reason": "Involves evaluating creditworthiness for automated financial decisions, potentially denying access to credit facilities."
+        "zh_reason": "依據 PCPD《模範框架》第 25 頁圖 12，涉及「評估個人的信用可靠程度以作出自動化決策」之場景，屬法定高風險用例。",
+        "en_reason": "Per PCPD Model Framework (P.29, Fig 12), 'Evaluation of the creditworthiness of individuals for making automated financial decisions' is strictly classified as High Risk."
     },
     "醫療與健康科技 (AI 輔助影像分析)": {
         "level": "HIGH", 
-        "zh_reason": "涉及 AI 輔助醫學影像分析或治療，直接關乎人身安全與高敏感健康生物辨識數據。",
-        "en_reason": "Involves AI-assisted medical imaging analytics or therapies, directly affecting personal safety and highly sensitive health/biometric data."
+        "zh_reason": "依據 PCPD《模範框架》第 25 頁圖 12，涉及「AI 輔助醫學影像分析或治療」之場景，直接關乎人身安全與生物辨識資料，屬法定高風險用例。",
+        "en_reason": "Per PCPD Model Framework (P.29, Fig 12), 'AI-assisted medical imaging analytics or therapies' involving sensitive biometric data is classified as High Risk."
     },
     "零售與電子商務 (AI 聊天機械人推薦)": {
         "level": "LOW", 
-        "zh_reason": "主要用於推送個人化廣告或時裝建議，除非涉及大規模監控，否則對個人造成重大影響的可能性較低。",
-        "en_reason": "Primarily used for personalized ads or fashion recommendations; less likely to cause significant impact unless large-scale surveillance is involved."
+        "zh_reason": "依據 PCPD《模範框架》第 20 頁第 24 條，用於推送個人化廣告或時裝建議，不太可能對個人造成重大影響，屬一般/低風險用例。",
+        "en_reason": "Per PCPD Model Framework (P.23, Para 24), systems used to present individuals with personalised advertisements are unlikely to have a significant impact, thus lower risk."
     },
     "社福與非牟利機構 (一般行政輔助)": {
         "level": "LOW", 
-        "zh_reason": "一般行政辅助或內部翻譯，對持份者權益產生直接重大不利影響的機率相較可控。",
-        "en_reason": "General administrative assistance or internal translation; the probability of direct significant adverse effects on stakeholders is controllable."
-    }
-}
-
-# PCPD 四大部核心知識庫 (Chatbot & Audit 專用)
-PCPD_DB = {
-    "part1": {
-        "keys": ["策略", "管治", "strategy", "governance", "委員會", "committee", "採購", "procurement"],
-        "zh": {
-            "title": "第一部：AI 策略及管治",
-            "statute": "高級管理層的支持是成功的要素。機構應建立內部的 AI 管治策略，包含 AI 策略、採購考慮及成立跨部門的 AI 管治委員會。",
-            "red_flag": "缺乏最高管理層（董事會級別）的參與，或將高風險的 AI 採購決策完全下放至單一業務部門。",
-            "board_advice": "明確指派 C-Level 級別高管領導跨部門團隊，並建立企業內的 AI 清單（AI Inventory），確保透明度與問責制。"
-        },
-        "en": {
-            "title": "Part I: AI Strategy and Governance",
-            "statute": "Top management support is essential. Organizations should establish an internal AI governance strategy, including AI strategy, procurement considerations, and an AI governance committee.",
-            "red_flag": "Lack of Board-level involvement, or delegating high-risk AI procurement decisions entirely to siloed business units.",
-            "board_advice": "Designate a C-level executive to lead a cross-functional team and establish an enterprise AI Inventory to ensure transparency and accountability."
-        }
-    },
-    "part2": {
-        "keys": ["風險", "risk", " oversight", "監督", "人在環中", "human-in-the-loop", "影響評估", "pia"],
-        "zh": {
-            "title": "第二部：風險評估及人為監督",
-            "statute": "必須進行全面的風險評估以識別私隱風險。高風險 AI 系統應採取「人在環中」(human-in-the-loop) 方式，由人類決策者保留控制權。",
-            "red_flag": "在涉及員工考績、信貸拒絕等高風險用例上，採用完全自動化（人在環外）決策，剝奪了人類的最終裁量權。",
-            "board_advice": "將人為監督（Human Oversight）級別直接與私隱影響評估（PIA）結果掛鉤，強制高風險場景必須具備人類介入的審計軌跡（Audit Trail）。"
-        },
-        "en": {
-            "title": "Part II: Risk Assessment and Human Oversight",
-            "statute": "Comprehensive risk assessments must be conducted. High-risk AI systems should adopt a 'human-in-the-loop' approach where human actors retain control.",
-            "red_flag": "Deploying fully automated ('human-out-of-the-loop') decisions in high-risk use cases like HR appraisals or credit denials, stripping away final human discretion.",
-            "board_advice": "Directly link the level of Human Oversight to Privacy Impact Assessment (PIA) results. Mandate human-intervention audit trails for high-risk scenarios."
-        }
-    },
-    "part3": {
-        "keys": ["模型", "model", "數據", "data", " security", "保安", "定製", "customisation", "漂移", "drift", "測試", "testing"],
-        "zh": {
-            "title": "第三部：AI 模型的定製與管理",
-            "statute": "定製 AI 模型時須遵守資料最少化原則，並確保數據質素。必須防範模型漂移 (Model Drift) 及應對對抗式攻擊，並制定 AI 事故應變計劃。",
-            "red_flag": "使用未經匿名化處理的過度敏感個人資料（PII）微調模型，或缺乏對開源框架的安全審查。",
-            "board_advice": "實施嚴格的數據準備 SOP。投資於私隱增強技術（PETs，如差分私隱），並建立常態化的紅隊演練（Red Teaming）與模型重新訓練機制。"
-        },
-        "en": {
-            "title": "Part III: Customisation and Management of AI Systems",
-            "statute": "Data minimisation and data quality must be ensured during customisation. Organizations must prevent model drift, defend against adversarial attacks, and establish an AI Incident Response Plan.",
-            "red_flag": "Fine-tuning models using excessive, non-anonymized PII, or lacking security audits for open-source frameworks.",
-            "board_advice": "Implement strict Data Preparation SOPs. Invest in Privacy-Enhancing Technologies (PETs) and establish routine Red Teaming and model re-training mechanisms."
-        }
-    },
-    "part4": {
-        "keys": ["持份者", "stakeholder", "透明度", "transparency", "解釋", "explainable", "溝通", "communication", "反饋", "feedback"],
-        "zh": {
-            "title": "第四部：與持份者的溝通及交流",
-            "statute": "應清楚向持份者披露 AI 系統的使用，並在可行情況下解釋 AI 的決策。若決策產生重大影響，應提供途徑讓個人尋求人為介入。",
-            "red_flag": "隱瞞 AI 的介入程度，或在受影響員工/客戶要求覆核時，無法給出具意義的 AI 決策解釋（黑盒效應）。",
-            "board_advice": "建立標準化的透明度披露指引。確保前端介面具備「退出選項（Opt-out）」及「要求人工覆核」的雙向溝通渠道。"
-        },
-        "en": {
-            "title": "Part IV: Communication and Engagement with Stakeholders",
-            "statute": "Clearly disclose the use of AI systems to stakeholders and explain AI decisions where feasible. Provide channels for human intervention if decisions have significant impacts.",
-            "red_flag": "Concealing AI involvement or failing to provide meaningful explanations when affected employees/customers request reviews (the 'Black Box' effect).",
-            "board_advice": "Establish standardized transparency disclosure guidelines. Ensure user interfaces feature clear 'Opt-out' options and bi-directional channels for requesting human review."
-        }
+        "zh_reason": "依據 PCPD《模範框架》第 20 頁第 24 條，用於內部翻譯或一般行政輔助，對個人產生重大影響的可能性較小，屬一般/低風險用例。",
+        "en_reason": "Per PCPD Model Framework (P.23, Para 24), AI tools used for internal translation carry a lower risk profile."
     }
 }
 
 # ==========================================
-# 3. Sidebar UI (Architect Profile & Settings)
+# 3. Sidebar UI (強調官方權威與背書)
 # ==========================================
 with st.sidebar:
+    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Emblem_of_Hong_Kong.svg/120px-Emblem_of_Hong_Kong.svg.png", width=80)
+    st.title("PCPD AI Auditor")
     st.header("🌐 UI Language / 介面語言")
-    lang_choice = st.radio("Select Language / 選擇語言", ['繁體中文', 'English'], index=0 if st.session_state.lang == '繁體中文' else 1)
+    lang_choice = st.radio("Select Language", ['繁體中文', 'English'], index=0 if st.session_state.lang == '繁體中文' else 1)
     if lang_choice != st.session_state.lang:
         st.session_state.lang = lang_choice
         st.rerun()
     
-    is_zh = st.session_state.lang == '繁體中文'
-    
     st.markdown("---")
-    if is_zh:
-        st.markdown("### ⚙️ 系統設計與安全防護")
-        st.markdown("""
-        * **研發定位**: 專為企業高管及 IT 審計師設計的 AI 管治前置審查系統。
-        * **治理框架**: 架構嚴格對齊 **IAPP AIGP (v2.1)** 部署監督規範與 **ISO/IEC 42001** (AIMS) 體系思維。
-        * **架構安全性**: **100% 無 AI / 無 RAG 技術**。採用純決定性代碼架構，杜絕「AI 幻覺」風險。
-        * **數據零留底**: 系統無後台數據庫。網頁一經關閉，所有輸入的企業場景數據立即在雲端**全部歸零**，確保貫徹私隱設計 (Privacy-by-Design)。
-        """)
-    else:
-        st.markdown("### ⚙️ System Design & Security")
-        st.markdown("""
-        * **Positioning**: An AI governance pre-audit system engineered for corporate executives and IT auditors.
-        * **Governance**: Architecture strictly aligned with **IAPP AIGP (v2.1)** deployment oversight and **ISO/IEC 42001** (AIMS).
-        * **Core Technology**: **100% AI-Free / No RAG**. Built entirely on deterministic logic to eliminate "AI hallucinations."
-        * **Data Sovereignty**: Zero back-end databases. All inputs are **completely wiped from memory** upon closing the page, embodying Privacy-by-Design.
-        """)
+    st.markdown("### 🏛️ 官方模範框架核對基準" if is_zh else "### 🏛️ Model Framework Baseline")
+    st.caption("本系統核心指標 100% 依據香港個人資料私隱專員公署 (PCPD) 於 2024 年 6 月發布之《人工智能：個人資料保障模範框架》進行決定性邏輯編碼。" if is_zh else "100% aligned with the 'Artificial Intelligence: Model Personal Data Protection Framework' published by PCPD in June 2024.")
+    st.markdown("---")
+    st.markdown("### 🏛️ 全球管治框架對齊 (Alignment)")
+    st.caption("✅ **IAPP AIGP (v2.1):** Domain II Laws & Standards")
+    st.caption("✅ **ISO/IEC 42001 (AIMS):** AI 管理體系對齊")
+    st.markdown("---")
+    st.warning("⚠️ **免責聲明：** 本系統為開源公共利益沙盒原型，旨在推廣與宣傳 PCPD 負責任 AI 原則，並非官方系統。" if is_zh else "⚠️ **Disclaimer:** This is an independent open-source sandbox prototype for public advocacy, not an official PCPD system.")
+
+# ==========================================
+# 4. 主畫面與輸入區
+# ==========================================
+st.title("🛡️ 香港私隱專員公署 (PCPD) 《人工智能保障模範框架》智能審查系統")
+st.markdown("### 企業 AI 導入前置合規評分卡 (PCPD 2024 Model Framework Compliance Station)")
+
+with st.form("audit_form"):
+    st.markdown("#### 📥 第一步：輸入企業場景脈絡 (Input Operational Context)")
+    col1, col2 = st.columns(2)
+    with col1:
+        company_input = st.selectbox("選擇基礎企業用例 (Base Use Case)", list(RISK_MATRIX.keys()))
+    with col2:
+        oversight_input = st.selectbox("預期的人為監督模式 (Intended Human Oversight)", ["人在環中 (Human-in-the-loop)", "人為管控 (Human-in-command)", "人在環外 (Human-out-of-the-loop)"])
         
-    st.markdown("---")
-    st.markdown("### 📘 官方框架精準錨點" if is_zh else "### 📘 Official Framework Links")
-    st.markdown(f"- [{'第一部：策略及管治 (P.10)' if is_zh else 'Part I: Strategy & Gov (P.10)'}]({ZH_PDF_URL if is_zh else EN_PDF_URL}#page=10)")
-    st.markdown(f"- [{'第二部：風險與監督 (P.20)' if is_zh else 'Part II: Risk & Oversight (P.20)'}]({ZH_PDF_URL if is_zh else EN_PDF_URL}#page=20)")
-    st.markdown(f"- [{'第三部：模型與管理 (P.27)' if is_zh else 'Part III: Model & Mgmt (P.27)'}]({ZH_PDF_URL if is_zh else EN_PDF_URL}#page=27)")
-    st.markdown(f"- [{'第四部：持份者溝通 (P.40)' if is_zh else 'Part IV: Stakeholder Comms (P.40)'}]({ZH_PDF_URL if is_zh else EN_PDF_URL}#page=40)")
+    ai_use_case = st.text_area(
+        "請詳細描述您的 AI 應用場景（支援偵測：跨國多法域、跨境數據、第三方現成 API 或黑箱採購等複雜脈絡）",
+        placeholder="在此貼上您的情境題進行壓力測試..."
+    )
     
+    if st.form_submit_button("啟動 PCPD 模範框架深度審核 🔍"):
+        st.session_state.audit_performed = True
+        st.session_state.company_context = company_input
+        st.session_state.human_oversight_pref = oversight_input
+        st.session_state.case_description = ai_use_case
+
+# ==========================================
+# 5. Core Engine: PCPD Model Framework Context Reasoning
+# ==========================================
+if st.session_state.audit_performed:
     st.markdown("---")
-    st.warning("⚠️ **免責聲明：** 本系統為獨立開發之開源合規沙盒原型，並非 PCPD 官方系統。" if is_zh else "⚠️ **Disclaimer:** This is an independent open-source compliance sandbox prototype, not an official PCPD system.")
-
-# ==========================================
-# 4. Helper Functions for Logic
-# ==========================================
-def search_knowledge_base(query):
-    query_lower = query.lower()
-    results = []
-    for ch_id, ch_data in PCPD_DB.items():
-        if any(key in query_lower for key in ch_data["keys"]):
-            results.append({"type": "chapter", "data": ch_data, "id": ch_id})
-    return results
-
-# ==========================================
-# 5. Main UI Layout (Three-Track)
-# ==========================================
-st.title("🛡️ PCPD AI Governance Workspace")
-if is_zh:
-    st.subheader("100% 決定性合規・香港人工智能個人資料保障模範框架審計")
-else:
-    st.subheader("100% Deterministic Compliance · PCPD AI Model Framework Auditor")
-
-tab_chat, tab_matrix, tab_audit = st.tabs([
-    "💬 Chatbot (動態法規導航 / Policy Navigator)", 
-    "⚖️ Risk Matrix (動態情境判定 / Scenario Evaluator)", 
-    "📋 Overall Scorecard (全局合規計分卡 / Executive Audit)"
-])
-
-# ------------------------------------------
-# Track A: Chatbot Interface (Bilingual)
-# ------------------------------------------
-with tab_chat:
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
-
-    if prompt := st.chat_input("請輸入關鍵字（例如：'風險', '透明度', '模型漂移', '監督'）..." if is_zh else "Enter keywords (e.g., 'risk', 'transparency', 'model drift')..."):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
-
-        with st.chat_message("assistant"):
-            matches = search_knowledge_base(prompt)
-            if not matches:
-                fallback_msg = "🔍 **未找到直接匹配的關鍵字 (No direct match found).**\n\n請嘗試使用更明確的法規術語，或直接點擊側邊欄查閱官方 PDF 文件。\n\nPlease try using specific regulatory terms or refer to the official PDF links in the sidebar."
-                st.markdown(fallback_msg)
-                st.session_state.messages.append({"role": "assistant", "content": fallback_msg})
-            else:
-                combined_response = ""
-                for match in matches:
-                    data_zh = match["data"]["zh"]
-                    data_en = match["data"]["en"]
-                    
-                    st.info(f"**📖 {data_zh['title']} / {data_en['title']}**\n\n**Statutory Core / 法定核心:**\n{data_zh['statute']}\n\n*English:* {data_en['statute']}")
-                    st.error(f"**🚨 Red Flags / 違法紅線:**\n{data_zh['red_flag']}\n\n*English:* {data_en['red_flag']}")
-                    st.warning(f"**🛡️ Board-Level Governance / 董事會治理建議:**\n{data_zh['board_advice']}\n\n*English:* {data_en['board_advice']}")
-                    st.markdown("---")
-                    
-                    combined_response += f"**{data_zh['title']}**\n\n*Statute:* {data_zh['statute']}\n\n---\n"
-                
-                st.session_state.messages.append({"role": "assistant", "content": combined_response})
-
-# ------------------------------------------
-# Track B: Risk Matrix (Scenario Evaluator)
-# ------------------------------------------
-with tab_matrix:
-    st.markdown("#### 📥 1. 界定 AI 應用情境與監督模式 (Define Use Case & Oversight)" if is_zh else "#### 📥 1. Define AI Use Case & Oversight Model")
+    st.markdown("### 📋 第二步：依據 PCPD 2024《模範框架》產出之高管稽核報告")
     
-    with st.form("risk_form"):
-        col1, col2 = st.columns(2)
-        with col1:
-            company_input = st.selectbox(
-                "選擇企業類型與核心場景 (Enterprise Context)",
-                list(RISK_MATRIX.keys())
+    ctx_text = st.session_state.case_description.lower()
+    base_risk = RISK_MATRIX[st.session_state.company_context]
+    current_oversight = st.session_state.human_oversight_pref
+    
+    tab1, tab2, tab3 = st.tabs([
+        "📊 第一、二部：管治架構與風險監督", 
+        "⚙️ 第三部：模型定製與第三方風險管理 (TPRM)", 
+        "📢 第四部：持份者溝通與透明度要求"
+    ])
+    
+    # ------------------------------------------
+    # 分頁一：第一、二部 —— 策略、管治、風險判定與多法域
+    # ------------------------------------------
+    with tab1:
+        st.subheader("第一部：AI 策略及管治 & 第二部：風險評估及人為監督")
+        
+        # 1. 基礎風險判定
+        st.info(f"**【基準風險判定】** {base_risk['zh_reason'] if is_zh else base_risk['en_reason']}")
+        
+        # 2. 多法域與跨境數據動態偵測 (修復缺陷一)
+        has_cross_border = any(w in ctx_text for w in ["跨境", "cross-border", "cross border", "中港", "轉移", "司法管轄", "jurisdiction", "分公司", "總部"])
+        has_eu_act = any(w in ctx_text for w in ["歐盟", "eu ai act", "eu", "總部", "headquarter", "歐洲"])
+        
+        if has_cross_border or has_eu_act:
+            st.error("🔴 **深度審計：偵測到多法域重疊管轄與跨境傳輸風險 (Overlapping Jurisdictions)**")
+            st.markdown(
+                f"*- **《私隱條例》保障資料第 4(2) 原則與跨境規範（模範框架第 14 頁）：** 機構作為資料使用者，若將個人資料轉移予外地資料處理者進行雲端定製，必須採用**合約規範或其他方法**保障資料保安 [cite: 85, 206]。*\n"
+                f"*- **跨國管轄權衝突：** 總部若受《歐盟 AI 法案》監管，香港分公司部署時必須進行雙重合規映射。董事會應指示法律合規部門簽發標準契約條款（SCCs）以應對多法域重疊監管。*"
             )
-        with col2:
-            oversight_input = st.selectbox(
-                "預期的人為監督模式 (Intended Human Oversight)",
-                ["人在環中 (Human-in-the-loop)", "人為管控 (Human-in-command)", "人在環外 (Human-out-of-the-loop)"]
-            )
-            
-        ai_use_case = st.text_area(
-            "詳細描述您的 AI 應用場景與涉及的個人資料（Data Inventory）" if is_zh else "Detailed AI Use Case & Data Inventory",
-            placeholder="例如：我們計劃導入大型語言模型分析員工績效數據並預測離職率..." if is_zh else "e.g., We plan to deploy an LLM to predict staff turnover..."
-        )
         
-        if st.form_submit_button("執行情境風險判定 🔍" if is_zh else "Execute Risk Evaluation 🔍"):
-            st.session_state.audit_performed = True
-            st.session_state.company_context = company_input
-            st.session_state.human_oversight_pref = oversight_input
-
-    if st.session_state.audit_performed:
-        st.markdown("---")
-        current_context = st.session_state.company_context
-        current_oversight = st.session_state.human_oversight_pref
-        risk_info = RISK_MATRIX[current_context]
-        
-        st.subheader("⚖️ 動態風險判定與監督衝突審查" if is_zh else "⚖️ Dynamic Risk & Governance Misalignment Check")
-        
-        reason_text = risk_info['zh_reason'] if is_zh else risk_info['en_reason']
-        
-        if risk_info["level"] == "HIGH":
-            st.error(f"🔴 **法定高風險用例 (High Risk Profile):**\n\n{reason_text}")
-            if current_oversight != "人在環中 (Human-in-the-loop)":
-                warning_msg = f"⚠️ **管治衝突警告 (Governance Misalignment)：**\n\n高風險 AI 系統**應強制採取「人在環中」**模式，人類決策者必須保留最終決定權以防止出錯。當前選擇極可能違反指引，強烈建議修正。" if is_zh else f"⚠️ **Governance Misalignment:** High-risk systems must enforce a 'Human-in-the-loop' model. Your current selection poses severe compliance risks."
-                st.warning(warning_msg)
+        # 3. 監督衝突審查 (依據指引第 24 頁第 32 條)
+        st.markdown("##### 👥 人為監督模式（Human Oversight）合規審查")
+        if base_risk["level"] == "HIGH" or has_eu_act:
+            if "人在環中" not in current_oversight:
+                st.warning(f"⚠️ **管治衝突警告 (Governance Misalignment)：** 依據《模範框架》第二部第 32(i) 條明確規定，高風險 AI 系統**應採取「人在環中」(Human-in-the-loop)** 方式 [cite: 22, 343]。人類決策者必須在過程中保留控制權，以防止或減低自動化偏見 [cite: 22, 343]。當前配置的 [{current_oversight}] 存在重大違規風險！")
             else:
-                success_msg = "✅ **監督模式合規：** 針對高風險場景，已正確配置「人在環中」監督模式。" if is_zh else "✅ **Oversight Compliant:** 'Human-in-the-loop' is correctly configured for this high-risk scenario."
-                st.success(success_msg)
+                st.success("✅ **人為監督配置合規：** 符合《模範框架》第 32 條高風險用例採取「人在環中」之規範 [cite: 22, 343]。")
         else:
-            success_msg = f"🟢 **一般風險用例 (Minimal Risk Profile):**\n\n{reason_text}\n\n依據風險比例原則，可考慮採取「人在環外」完全自動化或「人為管控」模式，但需持續進行私隱影響評估。" if is_zh else f"🟢 **Minimal Risk Profile:**\n\n{reason_text}\n\n'Human-out-of-the-loop' or 'Human-in-command' may be considered, subject to continuous Privacy Impact Assessments."
-            st.success(success_msg)
+            st.success(f"🟢 **低/一般風險監督配置：** 依據《模範框架》第 32(ii) 條，低風險場景可採完全自動化之「人在環外」模式 [cite: 22, 344]。")
 
-# ------------------------------------------
-# Track C: Overall Scorecard (Executive Audit)
-# ------------------------------------------
-with tab_audit:
-    if is_zh:
-        st.markdown("### 📋 企業級全局合規自我審查 (Executive Audit Scorecard)")
-        st.caption("基於 AIGP 部署監督理念：將 PCPD 四大部靜態指引轉化為可量化之核取清單。")
-    else:
-        st.markdown("### 📋 Enterprise Executive Audit Scorecard")
-        st.caption("Aligned with AIGP Deployment Oversight: Quantifying the 4 Parts of the PCPD framework.")
-
-    lang_key = "zh" if is_zh else "en"
-    total_checks = 0
-    passed_checks = 0
-
-    # 動態生成 4 大部的 Expander 清單
-    for ch_id, ch_data in PCPD_DB.items():
-        data = ch_data[lang_key]
-        with st.expander(f"✅ {data['title']}"):
-            col1, col2 = st.columns([3, 1])
+    # ------------------------------------------
+    # 分頁二：第三部 —— 模型定製、實施、與關鍵的 TPRM 採購分支
+    # ------------------------------------------
+    with tab2:
+        st.subheader("第三部：AI 模型的定製與AI系統的實施及管理")
+        
+        # 4. 區分「第三方採購 API/黑箱」與「內部自主研發」 (修復缺陷二)
+        is_third_party = any(w in ctx_text for w in ["第三方", "third party", "third-party", "api", "黑箱", "black box", "採購", "procure", "現成", "off-the-shelf", "無法獲取"])
+        
+        if is_third_party:
+            st.error("🚨 **核心治理分支：第三方黑箱方案 / API 採購軌道 (TPRM Route)**")
+            st.markdown(
+                f"💡 **高管審計提示（依據《模範框架》第一部第 16 條及第三部第 44 條修正）：**\n\n"
+                f"由於企業無法獲取第三方 API 的底層技術細節（Lack of Explainability），此時**無法在技術層面控制其數據準備、微調或模型漂移** 。"
+                f"董事會的管治核心必須全面轉向 **合約約束 (Contractual Protections)** 與 **供應商盡職調查 (Supplier Due Diligence)** [cite: 22, 140, 160, 174]："
+            )
             
-            with col1:
-                st.markdown(f"**📝 {'Statutory Requirement' if not is_zh else '法定核心'}:** {data['statute']}")
-                st.markdown(f"**🚨 {'Risk Flag' if not is_zh else '違法紅線'}:** {data['red_flag']}")
-                st.markdown(f"**🛡️ {'Board Advice' if not is_zh else '董事會治理建議'}:** {data['board_advice']}")
+            tp1 = st.checkbox("【資料處理者協議】已與 AI 供應商簽署正式合約，嚴禁供應商將企業輸入的提示詞與 PII 用作其基礎模型的二次訓練。（符合指引第 16(v) 條與第 44(ii) 條）[cite: 168, 514]")
+            tp2 = st.checkbox("【合約責任轉嫁】合約中已明訂當第三方 API 產生非法歧視、錯誤內容或發生資料保安事故時的法律責任歸屬與補償機制。（符合指引第 18 條）[cite: 188]")
+            tp3 = st.checkbox("【事故應變與暫停】已建立「AI 事故應變計劃」，當第三方供應商遭遇黑客攻擊或單方面變更規格時，企業能指派專人一鍵「暫停」或「停止」系統連線。（符合指引第 46(iv) 條與第 49 條圖 18）[cite: 534, 583, 596]")
             
-            with col2:
-                st.markdown("**Checklist:**")
-                c1 = st.checkbox(f"Policy Updated ({ch_id})", key=f"{ch_id}_c1")
-                c2 = st.checkbox(f"Staff Trained ({ch_id})", key=f"{ch_id}_c2")
-                c3 = st.checkbox(f"System Enforced ({ch_id})", key=f"{ch_id}_c3")
-                
-                total_checks += 3
-                passed_checks += sum([c1, c2, c3])
-                score = (sum([c1, c2, c3]) / 3) * 100
-                st.metric("Section Score", f"{score:.0f}%")
+            tp_score = (sum([tp1, tp2, tp3]) / 3) * 100
+            st.markdown(f"##### 📊 第三方採購 (TPRM) 合規就緒度：**{tp_score:.0f}%**")
+            st.progress(tp_score / 100)
+        else:
+            st.success("🛠️ **核心治理分支：自主研發、微調與定製實施軌道 (In-house Customisation Route)**")
+            st.markdown(f"*根據《模範框架》第三部第 41 條及第 43 條，自建或微調模型應落實以下技術控制 [cite: 22, 413, 475]：*")
+            
+            in1 = st.checkbox("【資料最少化】在微調 (Fine-tuning) 數據集中，已刪除或假名化無關之個人特徵（符合指引第 41(ii) 條）。[cite: 426, 428]")
+            in2 = st.checkbox("【私隱增強技術】已評估在數據定製或發放前，採用差分私隱 (Differential Privacy) 或合成數據（符合指引第 41(ii) 條）。[cite: 430, 436]")
+            in3 = st.checkbox("【模型漂移監查】已指派專人監察模型是否出現「模型漂移 (Model Drift)」或「模型衰退」，定期以新數據微調（符合指引第 48(v) 條）。[cite: 550, 561]")
+            
+            in_score = (sum([in1, in2, in3]) / 3) * 100
+            st.markdown(f"##### 📊 自主研發與定制合規就緒度：**{in_score:.0f}%**")
+            st.progress(in_score / 100)
 
-    # Overall Compliance Score
-    st.markdown("---")
-    overall_score = (passed_checks / total_checks) * 100 if total_checks > 0 else 0
-    st.subheader(f"📈 {'整體合規就緒度 / Overall Compliance Readiness'}: {overall_score:.1f}%")
-    st.progress(overall_score / 100)
-    
-    if overall_score == 100:
-        st.success("🌟 完美合規！已完全納入貫徹私隱設計（Privacy-by-Design）精神。" if is_zh else "🌟 Fully Compliant! Privacy-by-Design fully integrated.")
-        st.balloons()
-    elif overall_score >= 50:
-        st.warning("⚠️ 已具備基礎防禦，但仍有治理死角，建議盡快補齊未勾選項目。" if is_zh else "⚠️ Foundation established, but governance blind spots remain. Complete unchecked items.")
-    else:
-        st.error("🚨 就緒度極低！缺乏核心防護，存在違反保障資料原則的重大合規風險。" if is_zh else "🚨 Extremely low readiness! Major compliance risks exist regarding Data Protection Principles.")
+    # ------------------------------------------
+    # 分頁三：第四部 —— 持份者溝通、透明度與可解釋性
+    # ------------------------------------------
+    with tab3:
+        st.subheader("第四部：與持份者的溝通及交流")
+        st.markdown(f"*依據《模範框架》第四部之規範，向董事會匯報時必須落實以下持份者保障機制 [cite: 22, 626]：*")
+        st.markdown("- **顯著披露 (Prominent Disclosure)：** 除非 AI 的使用顯而易見，否則必須向受影響群體（如員工、消費者）清楚披露 AI 系統的介入程度（指引第 53(i) 條）。[cite: 635, 639]")
+        st.markdown("- **可解釋性 (Explainable AI)：** 應向資料當事人說明促使 AI 系統做出個別自動化決策的主要因素（局部可解釋性）（指引第 58(iii) 條）。[cite: 655, 660, 661]")
+        st.markdown("- **人工介入與救濟 (Redress & Human Intervention)：** 當 AI 輸出結果對個人造成重大影響時，機構**必須提供官方管道讓當事人尋求合理解釋、表達反饋及要求人為重新審視**（指引第 56 條）。[cite: 652]")
