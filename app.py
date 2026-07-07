@@ -1,10 +1,10 @@
 import streamlit as st
 
 # ==========================================
-# 1. 頁面配置與 UI 設定
+# 1. 頁面配置與高管級 UI 設定
 # ==========================================
 st.set_page_config(
-    page_title="PCPD AI Model Framework Compliance Station",
+    page_title="PCPD AI Model Framework Auditor",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -14,212 +14,180 @@ st.markdown("""
     <style>
     #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
     .stCheckbox > label {font-weight: 500;}
-    .stRadio > label {font-weight: bold; color: #2E4053;}
     </style>
 """, unsafe_allow_html=True)
 
-# 香港個人資料私隱專員公署 (PCPD) 官方文件公開網址
+# 香港個人資料私隱專員公署 (PCPD) 官方中英文文件公開網址
 ZH_PDF_URL = "https://www.pcpd.org.hk/tc_chi/resources_centre/publications/files/ai_protection_framework.pdf"
+EN_PDF_URL = "https://www.pcpd.org.hk/english/resources_centre/publications/files/ai_protection_framework.pdf"
 
-# ==========================================
-# 2. 狀態保存機制 (Session State 初始化)
-# ==========================================
+# Initialize Session State
 if 'lang' not in st.session_state: st.session_state.lang = '繁體中文'
-is_zh = st.session_state.lang == '繁體中文'
-
 if "audit_performed" not in st.session_state: st.session_state.audit_performed = False
 if "company_context" not in st.session_state: st.session_state.company_context = "HR_Perf"
 if "human_oversight_pref" not in st.session_state: st.session_state.human_oversight_pref = "HITL"
+if 'chat_messages' not in st.session_state: st.session_state.chat_messages = []
 
-if "quiz_index" not in st.session_state: st.session_state.quiz_index = 0
-if "quiz_score" not in st.session_state: st.session_state.quiz_score = 0
-if "quiz_answered" not in st.session_state: st.session_state.quiz_answered = False
-if "user_choice" not in st.session_state: st.session_state.user_choice = None
-if "weak_domains" not in st.session_state: st.session_state.weak_domains = set()
+is_zh = st.session_state.lang == '繁體中文'
+PDF_URL = ZH_PDF_URL if is_zh else EN_PDF_URL
 
 # ==========================================
-# 3. PCPD 官方指引情境測驗庫
-# ==========================================
-QUIZ_BANK = [
-    {
-        "domain": "第一部：AI 策略及管治",
-        "topic": "採購 AI 方案的管治考慮（第 16 條）",
-        "scenario": "企業計劃向第三方供應商採購現成的 AI 雲端方案處理客戶個人資料。由於模型在供應商的雲端平台上運作，企業無法干預其底層演算法。依據 PCPD《模範框架》，企業最關鍵的管治措施為何？",
-        "options": [
-            "A. 要求內部工程師對該雲端模型進行逆向工程，以測試其安全性。",
-            "B. 簽署資料處理者協議，明訂隱私與保安責任，並禁止供應商將資料用於其自身目的（如二次訓練模型）。",
-            "C. 要求客戶簽署免責聲明，企業不對第三方供應商造成的資料外洩負責。",
-            "D. 直接採取「人在環外」的完全自動化模式，以節省人為監督成本。"
-        ],
-        "answer": "B. 簽署資料處理者協議，明訂隱私與保安責任，並禁止供應商將資料用於其自身目的（如二次訓練模型）。",
-        "explanation": """
-        **✅ 正確選項 (B) 解析：**
-        依據 PCPD《模範框架》第 16(v) 條，如機構採購 AI 方案涉及聘用資料處理者（例如在雲端平台上運作），必須簽署資料處理者協議，防範資料被未獲准許使用。
-
-        **❌ 錯誤選項解析：**
-        - (A) 違反採購實務，且無助於資料保護。
-        - (C) 違反《私隱條例》，機構作為「資料使用者」對資料的處理承擔最終責任。
-        - (D) 忽視風險評估，且與採購管治無關。
-        """
-    },
-    {
-        "domain": "第二部：風險評估及人為監督",
-        "topic": "決定人為監督的程度（第 32 條）",
-        "scenario": "醫院計劃導入一套 AI 輔助醫學影像分析系統。此系統的輸出結果會直接影響病患的診斷與治療方案。依據 PCPD《模範框架》，此系統應採取何種人為監督模式？",
-        "options": [
-            "A. 人在環外 (Human-out-of-the-loop)，以達到完全自動化的最高效率。",
-            "B. 人為管控 (Human-in-command)，由人類事後隨機抽查即可。",
-            "C. 人在環中 (Human-in-the-loop)，人類決策者在決策過程中保留著控制權，以防止及減低 AI 出錯。",
-            "D. 無需人為監督，因醫療 AI 模型的準確率通常高於人類。"
-        ],
-        "answer": "C. 人在環中 (Human-in-the-loop)，人類決策者在決策過程中保留著控制權，以防止及減低 AI 出錯。",
-        "explanation": """
-        **✅ 正確選項 (C) 解析：**
-        依據 PCPD《模範框架》圖 12，AI 輔助醫學影像分析屬高風險應用。第 32(i) 條明文規定：「高風險的 AI 系統應採取『人在環中』方式進行人為監督。人類決策者在決策過程中保留著控制權」。
-
-        **❌ 錯誤選項解析：**
-        - (A) 與 (B) 僅適用於風險最小或較低的 AI 系統（第 32(ii) 及 (iii) 條）。
-        - (D) 完全違反指引中「人為監督」的 AI 道德原則。
-        """
-    },
-    {
-        "domain": "第四部：與持份者的溝通及交流",
-        "topic": "資料當事人的權利及反饋（第 56 條）",
-        "scenario": "某企業使用 AI 系統自動篩選求職者履歷。一名被 AI 淘汰的求職者對結果表示不滿。為符合 PCPD《模範框架》的建議，企業應該怎麼做？",
-        "options": [
-            "A. 拒絕回應，因為 AI 的演算法是商業機密。",
-            "B. 提供途徑讓求職者作出反饋、尋求解釋，並容許其要求人為重新介入審視。",
-            "C. 告知求職者 AI 絕對客觀，結果無法更改。",
-            "D. 僅提供系統生成的標準拒絕信，不提供任何人為介入選項。"
-        ],
-        "answer": "B. 提供途徑讓求職者作出反饋、尋求解釋，並容許其要求人為重新介入審視。",
-        "explanation": """
-        **✅ 正確選項 (B) 解析：**
-        依據 PCPD《模範框架》第 56 條規定：「如 AI 系統的決策/輸出結果可能對個人造成重大影響，機構應盡可能向個人提供途徑，讓他們作出反饋、尋求解釋及/或要求人為介入」。
-
-        **❌ 錯誤選項解析：**
-        - (A)、(C) 及 (D) 均剝奪了資料當事人尋求解釋與要求人為介入的權利，違反了透明度與可解釋性原則。
-        """
-    }
-]
-
-# ==========================================
-# 4. 結構化風險字典與選項庫 (嚴格依據 PCPD 框架)
+# 2. 結構化風險字典矩陣 (雙語化 & PCPD 嚴格映射)
 # ==========================================
 RISK_MATRIX = {
-    "HR_Perf": {"label": "工作表現評核或終止僱傭合約", "level": "HIGH", "reason": "依據 PCPD《模範框架》圖 12，涉及「工作表現評核或終止僱傭合約」屬高風險用例。"},
-    "Finance_Fraud": {"label": "自動化財務決策 (如信貸評估)", "level": "HIGH", "reason": "依據 PCPD《模範框架》圖 12，涉及「評估個人的信用可靠程度以作出自動化財務決策」，屬高風險用例。"},
-    "Med_Tech": {"label": "AI 輔助醫學影像分析或治療", "level": "HIGH", "reason": "依據 PCPD《模範框架》圖 12，直接關乎人身安全，屬高風險用例。"},
-    "Retail_Bot": {"label": "個人化廣告或商品推薦", "level": "LOW", "reason": "依據 PCPD《模範框架》第 24 條，用於推送廣告，對個人造成重大影響的可能性較低，屬低風險用例。"}
+    "HR_Perf": {
+        "zh_label": "大型跨國企業 (HR 數位轉型 / 考績預測)", "en_label": "MNC (HR Digital Transformation / Performance Prediction)",
+        "level": "HIGH", 
+        "zh_reason": "依據 PCPD 2024《模範框架》第 25 頁圖 12 明文規定，涉及「求職者評估、工作表現評核或終止僱傭合約」之場景，屬法定高風險用例。",
+        "en_reason": "Per PCPD 2024 Model Framework (P.29, Fig 12), 'Assessment of job applicants, evaluation of job performance or termination of employment contracts' is a statutory High-Risk use case."
+    },
+    "Finance_Fraud": {
+        "zh_label": "香港金融機構 (信貸評估 / 欺詐偵測)", "en_label": "HK Financial Institution (Credit Scoring / Fraud Detection)",
+        "level": "HIGH", 
+        "zh_reason": "依據 PCPD 2024《模範框架》第 25 頁圖 12，涉及「評估個人的信用可靠程度以作出自動化財務決策」之場景，屬法定高風險用例。",
+        "en_reason": "Per PCPD 2024 Model Framework (P.29, Fig 12), 'Evaluation of the creditworthiness of individuals for making automated financial decisions' is a statutory High-Risk use case."
+    },
+    "Med_Tech": {
+        "zh_label": "醫療與健康科技 (AI 輔助影像分析)", "en_label": "HealthTech (AI-Assisted Medical Imaging Analytics)",
+        "level": "HIGH", 
+        "zh_reason": "依據 PCPD 2024《模範框架》第 25 頁圖 12，涉及「AI 輔助醫學影像分析或治療」之場景，直接關乎人身安全，屬法定高風險用例。",
+        "en_reason": "Per PCPD 2024 Model Framework (P.29, Fig 12), 'AI-assisted medical imaging analytics or therapies' is a statutory High-Risk use case."
+    },
+    "Retail_Bot": {
+        "zh_label": "零售與電子商務 (AI 聊天推薦)", "en_label": "Retail & E-commerce (AI Chatbot Recommendations)",
+        "level": "LOW", 
+        "zh_reason": "依據 PCPD 2024《模範框架》第 20 頁第 24 條，用於推送個人化廣告或商品推薦，對持份者重大權益影響較低，屬一般/低風險用例。",
+        "en_reason": "Per PCPD 2024 Model Framework (P.23, Para 24), systems used to present individuals with personalised advertisements pose a lower risk."
+    }
 }
+
 OVERSIGHT_OPTIONS = {
-    "HITL": "人在環中 (Human-in-the-loop)",
-    "HIC": "人為管控 (Human-in-command)",
-    "HOOTL": "人在環外 (Human-out-of-the-loop)"
+    "HITL": {"zh": "人在環中 (Human-in-the-loop)", "en": "Human-in-the-loop (HITL)"},
+    "HIC": {"zh": "人為管控 (Human-in-command)", "en": "Human-in-command (HIC)"},
+    "HOOTL": {"zh": "人在環外 (Human-out-of-the-loop)", "en": "Human-out-of-the-loop (HOOTL)"}
 }
 
 # ==========================================
-# 5. Sidebar UI
+# 3. Sidebar UI
 # ==========================================
 with st.sidebar:
     st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Emblem_of_Hong_Kong.svg/120px-Emblem_of_Hong_Kong.svg.png", width=80)
-    st.title("PCPD 模範框架智庫")
+    st.title("PCPD AI Auditor")
+    st.header("🌐 UI Language / 介面語言")
+    lang_choice = st.radio("Select Language / 選擇語言", ['繁體中文', 'English'], index=0 if st.session_state.lang == '繁體中文' else 1, label_visibility="collapsed")
+    if lang_choice != st.session_state.lang:
+        st.session_state.lang = lang_choice
+        st.rerun()
+    
     st.markdown("---")
-    st.markdown("### 🏛️ 官方指引雙引擎")
-    st.caption("📖 **情境測驗:** 依據官方指引之決策演練")
-    st.caption("📋 **評分卡:** 企業前置合規稽核工具")
+    st.markdown("### 🏛️ 官方模範框架核對基準" if is_zh else "### 🏛️ Model Framework Baseline")
+    st.markdown("**本系統核心指標 100% 依據香港個人資料私隱專員公署 (PCPD) 2024 年發布之《人工智能：個人資料保障模範框架》進行決定性邏輯編碼。**" if is_zh else "**This system's core metrics are 100% deterministically coded based on the PCPD's 2024 'Artificial Intelligence: Model Personal Data Protection Framework'.**")
     st.markdown("---")
-    st.warning("⚠️ **免責聲明：** 本系統為獨立開發之純決定性代碼工具，內容 100% 取自香港私隱專員公署 2024 年發布之《人工智能：個人資料保障模範框架》，並非官方系統。")
+    st.warning("⚠️ **開源公共利益沙盒：** 純決定性代碼架構，100% 無 AI 幻覺，數據關閉即銷毀。" if is_zh else "⚠️ **Open-Source Sandbox:** Deterministic code architecture, 100% zero AI hallucinations, data wiped upon closing.")
 
 # ==========================================
-# 6. 核心雙軌架構 (Tabs)
+# 4. 智能語義路由 (Chatbot Logic)
 # ==========================================
-st.title("🛡️ 香港私隱專員公署 (PCPD) 模範框架實戰工作站")
-st.markdown("### 《人工智能：個人資料保障模範框架》動態合規工具")
+def get_pcpd_advice(query, is_zh):
+    query = query.lower()
+    advice = []
+    
+    # Shadow AI
+    if any(w in query for w in ["影子", "shadow", "私下", "員工自行", "繞過", "未授權", "偷偷", "unauthorized", "bypass"]):
+        advice.append({
+            "title": "🚨 影子 AI 違規操作 (Shadow AI Breach)" if is_zh else "🚨 Shadow AI Breach",
+            "content": "直接違反《私隱條例》保障資料第 4 原則（資料保安）。董事會必須立即啟動技術阻斷 (如部署 CASB) 並修訂《可接受使用政策》(AUP)。" if is_zh else "Directly violates DPP 4 (Data Security). The Board must immediately deploy technical blocking (e.g., CASB) and update the Acceptable Use Policy (AUP)."
+        })
+    
+    # TPRM
+    if any(w in query for w in ["第三方", "api", "廠商", "saas", "外購", "vendor", "third party", "procure"]):
+        advice.append({
+            "title": "⚙️ 採購 AI 方案的管治與第三方風險管理 (TPRM)" if is_zh else "⚙️ AI Procurement & Third-Party Risk Management (TPRM)",
+            "content": "依據《模範框架》第 16 及 44 條，無法獲取底層細節時，管治核心全面轉向合約約束：簽署資料處理者協議 (DPA)、確立責任轉嫁及 AI 事故應變計劃 (Kill Switch)。" if is_zh else "Per Model Framework Para 16 & 44, when lacking underlying access, governance pivots to contractual protections: DPA, liability transfer, and AI Incident Response Plans (Kill Switch)."
+        })
+        
+    # Cross-border
+    if any(w in query for w in ["跨境", "歐盟", "eu", "中港", "海外", "cross-border", "transfer"]):
+        advice.append({
+            "title": "🔴 多法域重疊管轄與跨境傳輸風險 (Overlapping Jurisdictions)" if is_zh else "🔴 Overlapping Jurisdictions & Cross-Border Risks",
+            "content": "依據《模範框架》第 14 頁：將個人資料轉移予外地資料處理者，必須採用合約規範保障資料保安。若遇歐盟等法規，需簽發標準契約條款 (SCCs) 應對多法域衝突。" if is_zh else "Per Model Framework P.17: Cross-border data transfers to overseas processors require contractual safeguards. Standard Contractual Clauses (SCCs) may be needed for dual compliance."
+        })
+        
+    # HR / High Risk
+    if any(w in query for w in ["hr", "招聘", "考績", "解僱", "信貸", "醫療", "hire", "performance", "medical"]):
+        advice.append({
+            "title": "👥 高風險用例與人為監督 (High-Risk & Human Oversight)" if is_zh else "👥 High-Risk Use Case & Human Oversight",
+            "content": "依據《模範框架》第 32 條，高風險 AI 系統應強制採取「人在環中」(Human-in-the-loop) 方式。完全自動化將導致違規的「合規幻覺」。同時需防範演算法間接歧視觸犯《僱傭條例》。" if is_zh else "Per Model Framework Para 32, High-Risk AI must enforce a 'Human-in-the-loop' approach. Fully automated decisions risk severe compliance illusions and algorithmic bias."
+        })
 
-tab_quiz, tab_audit = st.tabs([
-    "📖 模範框架情境測驗 (Scenario Q&A)", 
-    "📋 企業 AI 導入前置合規評分卡 (Compliance Scorecard)"
+    if not advice:
+        advice.append({
+            "title": "🔍 系統就緒 (System Ready)",
+            "content": "請輸入具體企業場景（如：HR 篩選履歷、第三方 SaaS 採購、員工私自使用開源模型等），系統將為您映射 PCPD 官方指引。" if is_zh else "Please describe a specific scenario (e.g., HR screening, SaaS procurement, Shadow AI usage) for PCPD Model Framework mapping."
+        })
+    return advice
+
+# ==========================================
+# 5. 主畫面佈局
+# ==========================================
+st.title("🛡️ 香港私隱專員公署 (PCPD) 模範框架審查系統" if is_zh else "🛡️ PCPD Model Framework Compliance Station")
+
+tab_chat, tab_audit = st.tabs([
+    "💬 智能情境審查 (Smart Chatbox)", 
+    "📋 企業前置合規評分卡 (Compliance Scorecard)"
 ])
 
 # ------------------------------------------
-# 軌道一：PCPD 模擬考場
+# 軌道一：智能情境 Chatbox
 # ------------------------------------------
-with tab_quiz:
-    st.subheader("💡 官方指引情境診斷")
-    st.markdown("本區題目與解析 **100% 嚴格依據 PCPD《模範框架》** 原文編寫，協助檢視您對官方指引的熟悉度。")
-    st.markdown("---")
+with tab_chat:
+    st.markdown("請描述您在企業中遇到的 AI 管治情境（例如：員工私自上傳客戶名單、採購海外 API 系統），系統將為您進行風險拆解：" if is_zh else "Describe your AI governance scenario, and the system will map the risks:")
+    
+    for msg in st.session_state.chat_messages:
+        with st.chat_message(msg["role"]):
+            st.markdown(msg["content"])
 
-    if st.session_state.quiz_index < len(QUIZ_BANK):
-        q = QUIZ_BANK[st.session_state.quiz_index]
+    if prompt := st.chat_input("請輸入企業情境..." if is_zh else "Enter enterprise scenario..."):
+        st.session_state.chat_messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"): st.markdown(prompt)
         
-        st.info(f"**📍 相關章節：** {q['domain']}\n\n**📌 核心指引：** {q['topic']}")
-        st.markdown(f"#### 📖 情境 (Scenario)：\n{q['scenario']}")
-        
-        with st.form(key=f"quiz_form_{st.session_state.quiz_index}"):
-            choice = st.radio("請依據 PCPD 指引選擇最佳的管治方式：", q['options'], index=None)
-            submit_ans = st.form_submit_button("提交答案 🔍")
+        with st.chat_message("assistant"):
+            advice_list = get_pcpd_advice(prompt, is_zh)
+            response_text = ""
+            for adv in advice_list:
+                st.error(f"### {adv['title']}")
+                st.info(f"**{'治理建議 (Governance Action):' if is_zh else 'Governance Action:'}** {adv['content']}")
+                response_text += f"### {adv['title']}\n{adv['content']}\n\n"
+            st.markdown(f"[🔗 {'查閱官方指引詳情' if is_zh else 'Read Official Framework'}]({PDF_URL})")
             
-            if submit_ans and choice:
-                st.session_state.user_choice = choice
-                st.session_state.quiz_answered = True
-                
-                if choice == q['answer']:
-                    st.session_state.quiz_score += 1
-                else:
-                    st.session_state.weak_domains.add(q['domain'])
-                st.rerun()
-
-        if st.session_state.quiz_answered:
-            if st.session_state.user_choice == q['answer']:
-                st.success("🎯 **判斷正確！**")
-            else:
-                st.error("⚠️ **判斷有誤。請參考下方官方指引解析。**")
-            
-            st.markdown(f"**正確解答：** {q['answer']}")
-            st.markdown(q['explanation'])
-            
-            if st.button("下一題 ➡️"):
-                st.session_state.quiz_index += 1
-                st.session_state.quiz_answered = False
-                st.session_state.user_choice = None
-                st.rerun()
-    else:
-        st.balloons()
-        st.success(f"🏆 **測驗完成！您的總得分為：{st.session_state.quiz_score} / {len(QUIZ_BANK)}**")
-        
-        if st.session_state.weak_domains:
-            st.warning("📊 **報告：您在以下《模範框架》章節存在弱點，建議查閱官方文件：**")
-            for w in st.session_state.weak_domains:
-                st.markdown(f"- {w}")
-        else:
-            st.info("📊 **報告：表現優異！您已完全掌握 PCPD《模範框架》的核心規範。**")
-            
-        if st.button("🔄 重新測驗"):
-            st.session_state.quiz_index = 0
-            st.session_state.quiz_score = 0
-            st.session_state.weak_domains = set()
-            st.session_state.quiz_answered = False
-            st.rerun()
+            st.session_state.chat_messages.append({"role": "assistant", "content": response_text})
 
 # ------------------------------------------
 # 軌道二：企業 AI 導入前置合規評分卡
 # ------------------------------------------
 with tab_audit:
     with st.form("audit_form"):
-        st.markdown("#### 📥 第一步：輸入企業場景脈絡")
+        st.markdown("#### 📥 第一步：輸入企業場景脈絡 (Input Operational Context)" if is_zh else "#### 📥 Step 1: Input Operational Context")
         col1, col2 = st.columns(2)
         with col1:
-            company_input = st.selectbox("選擇基礎企業用例", list(RISK_MATRIX.keys()), format_func=lambda x: RISK_MATRIX[x]["label"])
+            company_input = st.selectbox(
+                "選擇基礎企業用例 (Base Use Case)" if is_zh else "Select Base Use Case", 
+                list(RISK_MATRIX.keys()), 
+                format_func=lambda x: RISK_MATRIX[x]["zh_label"] if is_zh else RISK_MATRIX[x]["en_label"]
+            )
         with col2:
-            oversight_input = st.selectbox("預期的人為監督模式", list(OVERSIGHT_OPTIONS.keys()), format_func=lambda x: OVERSIGHT_OPTIONS[x])
+            oversight_input = st.selectbox(
+                "預期的人為監督模式 (Intended Human Oversight)" if is_zh else "Intended Human Oversight", 
+                list(OVERSIGHT_OPTIONS.keys()),
+                format_func=lambda x: OVERSIGHT_OPTIONS[x]["zh"] if is_zh else OVERSIGHT_OPTIONS[x]["en"]
+            )
             
         ai_use_case = st.text_area(
-            "請詳細描述您的 AI 應用場景（系統將自動依據 PCPD 指引偵測：跨境資料傳輸、第三方採購或內部定製等合規脈絡）",
-            placeholder="例如：向外部供應商採購現成的 AI 招聘系統，並涉及將香港員工的資料傳輸至海外伺服器..."
+            "請詳細描述您的 AI 應用場景（系統將自動智能偵測：影子 AI 違規操作、跨國多法域衝突、第三方 SaaS 採購或自研定製等複雜脈絡）" if is_zh else "Describe your AI use case in detail (System will auto-detect Shadow AI, cross-border data, TPRM, etc.):",
+            placeholder="例如：總部在歐盟受 EU AI Act 監管，香港分公司向美國廠商採購生成式招聘系統..." if is_zh else "e.g., HQ governed by EU AI Act, HK branch procuring SaaS HR system..."
         )
         
-        if st.form_submit_button("啟動 PCPD 模範框架深度審核 🔍"):
+        if st.form_submit_button("啟動 PCPD 模範框架深度審核 🔍" if is_zh else "Execute PCPD Deep Audit 🔍"):
             st.session_state.audit_performed = True
             st.session_state.company_context = company_input
             st.session_state.human_oversight_pref = oversight_input
@@ -227,59 +195,74 @@ with tab_audit:
 
     if st.session_state.audit_performed:
         st.markdown("---")
-        st.markdown("### 📋 第二步：依據 PCPD《模範框架》產出之合規報告")
+        st.markdown("### 📋 第二步：依據 PCPD 2024《模範框架》產出之高管稽核報告" if is_zh else "### 📋 Step 2: Board-Level Audit Report per PCPD 2024 Framework")
         
         ctx_text = st.session_state.case_description.lower()
         base_risk = RISK_MATRIX[st.session_state.company_context]
         current_oversight = st.session_state.human_oversight_pref
         
-        sub_tab1, sub_tab2, sub_tab3 = st.tabs(["📊 第一、二部：管治與風險", "⚙️ 第三部：模型定製與實施", "📢 第四部：持份者溝通"])
+        sub_tab1, sub_tab2, sub_tab3 = st.tabs([
+            "📊 第一、二部：管治與風險監督" if is_zh else "📊 Parts I & II: Gov. & Risk Oversight", 
+            "⚙️ 第三部：模型定製與第三方風險管理 (TPRM)" if is_zh else "⚙️ Part III: Customisation & TPRM", 
+            "📢 第四部：持份者溝通與透明度要求" if is_zh else "📢 Part IV: Stakeholder Comms"
+        ])
         
         with sub_tab1:
-            st.subheader("第一部：AI 策略及管治 & 第二部：風險評估及人為監督")
-            st.info(f"**【基準風險判定】** {base_risk['reason']}")
+            st.subheader("第一部：AI 策略及管治 & 第二部：風險評估及人為監督" if is_zh else "Part I: Strategy & Part II: Risk Assessment")
+            st.info(f"**【{'基準風險判定' if is_zh else 'Baseline Risk Assessment'}】** {base_risk['zh_reason'] if is_zh else base_risk['en_reason']}")
             
-            has_cross_border = any(w in ctx_text for w in ["跨境", "傳輸", "轉移", "海外", "外地", "雲端"])
+            if "HR" in st.session_state.company_context:
+                st.warning("⚠️ **跨法規聯動警告 (Employment Ordinance Cross-Compliance)：**\n\n在高度自動化的 HR 績效與解僱決策中，極易引入**演算法偏見（Algorithmic Bias）與間接歧視**。這不僅違反公平原則，更可能觸犯香港《僱傭條例》下的不當解僱。" if is_zh else "⚠️ **Employment Ordinance Cross-Compliance:** Highly automated HR decisions can introduce Algorithmic Bias, risking unfair dismissal claims under the HK Employment Ordinance.")
+
+            has_cross_border = any(w in ctx_text for w in ["跨境", "cross-border", "中港", "轉移", "外地", "美國", "司法管轄", "jurisdiction", "eu ai act", "歐盟"])
             if has_cross_border:
-                st.error("🔴 **合規提示：涉及跨境資料轉移的合法性**\n\n依據《模範框架》第 14 頁：若機構將個人資料轉移予外地資料處理者，必須採用**合約規範或其他方法**（依據《私隱條例》保障資料第 4(2) 原則），防止資料未獲准許被查閱或使用。")
+                st.error("🔴 **深度審計：偵測到多法域重疊管轄與跨境傳輸風險 (Overlapping Jurisdictions)**" if is_zh else "🔴 **Deep Audit: Overlapping Jurisdictions & Cross-Border Data Transfer Risk Detected**")
+                st.markdown(
+                    f"- **《私隱條例》保障資料第 4(2) 原則與跨境規範（《模範框架》第 14 頁）：** 必須採用**合約規範或其他方法**保障資料保安。\n- **跨國管轄權衝突：** 董事會應指示簽發標準契約條款（SCCs）以應對多法域重疊監管。"
+                    if is_zh else
+                    "- **DPP 4(2) & Cross-Border Rules (Model Framework P.17):** Must adopt contractual means to protect data security.\n- **Jurisdictional Conflict:** Board must instruct Legal to issue SCCs."
+                )
             
-            st.markdown("##### 👥 人為監督模式合規審查")
-            is_text_automated = any(w in ctx_text for w in ["完全自動化", "直接決定", "無須人工"])
+            st.markdown("##### 👥 人為監督模式（Human Oversight）合規審查" if is_zh else "##### 👥 Human Oversight Compliance Check")
+            is_text_automated = any(w in ctx_text for w in ["完全自動化", "直接執行", "fully automated", "自動解僱", "直接生成建議", "照單全收"])
             
             if base_risk["level"] == "HIGH":
                 if is_text_automated and current_oversight == "HITL":
-                    st.error("🚨 **管治邏輯衝突：** 表單選擇「人在環中」，但描述為「完全自動化」。依據指引，高風險用例必須保留人類實質的控制權。")
+                    st.error("🚨 **管治邏輯嚴重衝突 (Control Design Failure)：** 表單選擇「人在環中」，但描述為「完全自動化」。實質已降級為違規的「人在環外」。確保人類具備實質最終裁量權。" if is_zh else "🚨 **Control Design Failure:** Selected 'Human-in-the-loop' but described 'fully automated' processes. Redesign workflows to ensure final human discretion.")
                 elif current_oversight != "HITL":
-                    st.warning("⚠️ **合規警告：** 依據《模範框架》第 32(i) 條，高風險 AI 系統**應採取「人在環中」**方式進行人為監督。")
+                    st.warning("⚠️ **管治衝突警告：** 依據 PCPD 2024《模範框架》第二部第 32(i) 條，高風險 AI 系統**應強制採取「人在環中」(Human-in-the-loop)** 方式。" if is_zh else "⚠️ **Governance Misalignment:** Per PCPD Model Framework Para 32(i), high-risk systems **must adopt a 'Human-in-the-loop' approach**.")
                 else:
-                    st.success("✅ **人為監督配置合規：** 符合《模範框架》第 32 條「人在環中」之規範。")
+                    st.success("✅ **人為監督配置合規：** 系統與表單描述一致，符合 PCPD 2024《模範框架》第 32 條規範。" if is_zh else "✅ **Oversight Compliant:** Fully compliant with PCPD 2024 Model Framework Para 32.")
 
         with sub_tab2:
-            st.subheader("第三部：AI 模型的定製與 AI 系統的實施及管理")
-            is_third_party = any(w in ctx_text for w in ["第三方", "供應商", "採購", "現成", "外購"])
-            is_unauthorized = any(w in ctx_text for w in ["私下", "未經授權", "繞過"])
+            st.subheader("第三部：AI 模型的定製與系統管理" if is_zh else "Part III: Customisation & System Management")
             
-            if is_unauthorized:
-                st.error("🚨 **資料保安危機：偵測到未經授權的 AI 使用！**")
-                st.markdown("違反《私隱條例》保障資料第 4 原則。機構必須立即採取技術與政策措施（如更新內部指引、實施存取控制）以防止資料外洩。")
+            is_shadow_ai = any(w in ctx_text for w in ["影子", "shadow", "私下", "員工自行", "繞過", "未授權", "未經批准", "偷偷", "本地工作站", "unauthorized", "bypass"])
+            is_third_party = any(w in ctx_text for w in ["第三方", "third party", "third-party", "api", "黑箱", "black box", "採購", "procure", "saas", "廠商", "vendor"])
+            
+            if is_shadow_ai:
+                st.error("🚨 **重大合規危機：偵測到「影子 AI (Shadow AI)」違規操作！**" if is_zh else "🚨 **Critical Breach: 'Shadow AI' Unauthorized Operation Detected!**")
+                sh1 = st.checkbox("【技術阻斷與可觀測性】IT 部門已部署 CASB 或端點防護，阻擋未經授權的 API 呼叫。" if is_zh else "[Visibility & Blocking] IT deployed CASB/endpoint protection to block unauthorized API calls.")
+                sh2 = st.checkbox("【修訂 AUP 政策】嚴禁將 PII 輸入未經審批的外部 AI 工具。" if is_zh else "[Revise AUP] Strictly prohibit inputting PII into unapproved AI tools.")
+                sh3 = st.checkbox("【建立認可清單】提供承諾零數據留存的內部安全 AI 替代方案。" if is_zh else "[Whitelisting] Provided approved, zero-data-retention AI alternatives.")
+                st.progress((sum([sh1, sh2, sh3]) / 3))
                 
             elif is_third_party:
-                st.warning("🚨 **合規焦點：關於採購 AI 方案的管治考慮（第 16 條）**")
-                st.markdown("由於採購第三方方案，機構應落實以下合約與管理措施：")
-                tp1 = st.checkbox("【資料處理者協議】已簽署協議，明文禁止供應商將資料用於其自身目的（如二次訓練）（第 16(v) 條）。")
-                tp2 = st.checkbox("【責任與罰則】合約中已明訂私隱和保安的責任及道德規定（第 16(ii) 條）。")
-                tp3 = st.checkbox("【AI 事故應變計劃】已制定應變計劃，有需要時能迅速暫停 AI 系統（第 46(iv) 及 49 條）。")
+                st.warning("🚨 **核心治理分支切換：第三方 SaaS / 廠商 API 採購軌道 (TPRM Route Active)**" if is_zh else "🚨 **Governance Branch: Third-Party SaaS / Vendor API Track (TPRM Route Active)**")
+                tp1 = st.checkbox("【資料處理者協議 DPA】明文禁止廠商將 PII 用作其模型二次訓練（符合《模範框架》第 16 及 44 條）。" if is_zh else "[Data Processor DPA] Signed formal DPA strictly prohibiting vendors from using PII for secondary model training.")
+                tp2 = st.checkbox("【合約責任轉嫁】明訂當廠商系統產生不當偏見或資料外洩時的法律責任歸屬（符合《模範框架》第 18 條）。" if is_zh else "[Liability Transfer] Contract clearly dictates liability for bias or data breaches (Para 18).")
+                tp3 = st.checkbox("【AI 事故暫停機制】具備一鍵「暫停」系統連線能力（符合《模範框架》第 46 及 49 條） 。" if is_zh else "[AI Incident Kill Switch] AI Incident Response Plan established with capabilities to 'pause' system connections.")
                 st.progress((sum([tp1, tp2, tp3]) / 3))
                 
             else:
-                st.success("🛠️ **合規焦點：為定製及使用 AI 準備數據（第 41 條）**")
-                in1 = st.checkbox("【資料最少化】僅收集及使用為達致特定目的相關的個人資料，已刪除無關資料。")
-                in2 = st.checkbox("【私隱增強技術】在適當情況下，已使用匿名化、假名化或合成數據。")
-                in3 = st.checkbox("【持續監察】定期以新數據微調及再訓練 AI 模型，防範「模型漂移」（第 48(v) 條）。")
+                st.success("🛠️ **核心治理分支切換：自主研發與定製實施軌道 (In-House Development Route Active)**" if is_zh else "🛠️ **Governance Branch: In-House Development Track Active**")
+                in1 = st.checkbox("【資料最少化】移除或假名化無關之敏感特徵（符合《模範框架》第 41(ii) 條規範）。" if is_zh else "[Data Minimisation] Removed or pseudonymised irrelevant sensitive features from fine-tuning datasets.")
+                in2 = st.checkbox("【私隱增強技術】評估或採用差分私隱、合成數據等 PETs 技術。" if is_zh else "[PETs] Evaluated/adopted Privacy Enhancing Technologies (e.g., differential privacy).")
+                in3 = st.checkbox("【防範模型漂移】建立內部日誌監控，防止模型表現隨時間衰退（符合《模範框架》第 48(v) 條規範）。" if is_zh else "[Model Drift Prevention] Establish internal log monitoring to prevent 'Model Drift' over time.")
                 st.progress((sum([in1, in2, in3]) / 3))
 
         with sub_tab3:
-            st.subheader("第四部：與持份者的溝通及交流")
-            st.markdown("- **顯著披露：** 除非情況顯而易見，否則應清楚及用顯著的方式披露 AI 系統的使用（第 53(i) 條）。")
-            st.markdown("- **反饋與人工介入：** 若 AI 決策可能對個人造成重大影響，應提供途徑讓當事人尋求解釋及要求人為介入（第 56 條）。")
-            st.markdown("- **淺白溝通：** 與持份者溝通應使用淺白的語言和清楚易明的方式（第 60 條）。")
+            st.subheader("第四部：與持份者的溝通及交流" if is_zh else "Part IV: Communication and Engagement with Stakeholders")
+            st.markdown("- **顯著披露 (Prominent Disclosure)：** 向受影響群體清楚且顯著地披露 AI 系統的使用情況與介入程度（符合《模範框架》第 53 條）。" if is_zh else "- **Prominent Disclosure:** Clearly disclose the use and level of AI involvement to affected groups (Para 53).")
+            st.markdown("- **局部可解釋性與救濟途徑 (Redress Mechanism)：** 提供人為介入的選項，容許當事人表達反饋、尋求解釋並要求合規人員重新審視（符合《模範框架》第 56 條）。" if is_zh else "- **Local Explainability & Redress:** Provide human intervention options for feedback, explanation, and human review (Para 56).")
+            st.markdown("- **淺白語言 (Plain Language)：** 所有私隱政策與通知應使用淺白的語言（符合《模範框架》第 60 條）。" if is_zh else "- **Plain Language:** All privacy policies/notices must be expressed in plain, clear, and understandable language (Para 60).")
