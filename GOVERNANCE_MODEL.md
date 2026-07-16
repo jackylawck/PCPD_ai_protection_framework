@@ -4,17 +4,16 @@
 
 The underlying audit logic of this workspace is based on the "Human-Centred AI Governance Stack" developed by Jacky Law, merging HR, ISO 42001, legal, and mediation frameworks:
 
-┌─────────────────────────────────────────────────────────┐
-│       5. Evidence & Resolution (審計日誌、事故應變、調解補救)    │
-├─────────────────────────────────────────────────────────┤
-│       4. Model & Decision Assurance (演算法偏見、人工最終裁量)  │
-├─────────────────────────────────────────────────────────┤
-│       3. Data & Privacy Controls (資料最小化、跨境傳輸合約)    │
-├─────────────────────────────────────────────────────────┤
-│       2. People & Workforce Impact (員工監察、公平權益、申訴)   │
-├─────────────────────────────────────────────────────────┤
-│       1. Purpose & Accountability (業務目的、董事會問責與監督)   │
-└─────────────────────────────────────────────────────────┘
+```text
+[ 5. Evidence & Resolution (審計日誌、事故應變、調解補救) ]
+──────────────────────────────────────────────────────────
+  [ 4. Model & Decision Assurance (演算法偏見、人工最終裁量) ]
+──────────────────────────────────────────────────────────
+    [ 3. Data & Privacy Controls (資料最小化、跨境傳輸合約) ]
+──────────────────────────────────────────────────────────
+      [ 2. People & Workforce Impact (員工監察、公平權益、申訴) ]
+──────────────────────────────────────────────────────────
+        [ 1. Purpose & Accountability (業務目的、董事會問責與監督) ]
 
 ## 五層核心控制點對齊 (Five-Layer Control Alignment)
 
