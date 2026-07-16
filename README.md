@@ -16,3 +16,11 @@ This project is an automated compliance audit sandbox prototype, strictly design
   - Queries falling outside the scope of the "Model Framework" will be rejected to prevent the creation of "Compliance Illusions".
 - **使用建議 (Usage Advice)：** 評估結果僅供企業內部進行風險評估與管治流程 (Governance Workflow) 參考，實際合規部署請諮詢專業法律或資料保護顧問。
   - Evaluation results are for internal risk assessment and governance workflow reference only. Please consult professional legal or data protection counsel for actual compliance deployment.
+
+## 👥 聯絡與專業交流 (Contact & Professional Engagement)
+
+如果您對本系統的管治邏輯、PCPD《模範框架》的落地實踐，或企業 AI 導入的合規審計有任何學術與專業上的探討，歡迎透過 LinkedIn 與我聯絡。
+
+If you have any academic or professional inquiries regarding this system's governance logic, the practical implementation of the PCPD "Model Framework", or corporate AI compliance auditing, please feel free to connect via LinkedIn.
+
+👉 **[🌐 Connect on LinkedIn | 羅子淇 Jacky Law](https://www.linkedin.com/in/jackylawck)**
