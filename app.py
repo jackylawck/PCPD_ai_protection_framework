@@ -90,6 +90,21 @@ with st.sidebar:
     else:
         st.warning("⚠️ **Strict Boundary Disclaimer**\n\nThis is an independent open-source tool, **NOT an official PCPD system**. It operates under strict boundary controls, answering ONLY based on the Model Framework text. Queries outside this scope will be rejected to prevent compliance illusions.")
 
+    # ------------------------------------------
+    # 側邊欄底部：專業 LinkedIn 聯絡按鈕
+    # ------------------------------------------
+    st.markdown("---")
+    st.markdown("### 👤 " + ("專業聯絡" if is_zh else "Contact Specialist"))
+    
+    linkedin_url = "https://www.linkedin.com/in/jackylawck"
+    
+    if is_zh:
+        st.markdown("如有 AI 管治、合規審計或法規映射之專業探討，歡迎聯絡專案作者：")
+        st.link_button("🌐 訪問作者 LinkedIn 檔案", linkedin_url, type="primary")
+    else:
+        st.markdown("For professional inquiries regarding AI governance, compliance auditing, or regulatory mapping, connect with the author:")
+        st.link_button("🌐 Connect on LinkedIn", linkedin_url, type="primary")
+
 # ==========================================
 # 4. 智能語義路由 (Chatbot 藏拙與防禦邏輯)
 # ==========================================
@@ -97,8 +112,13 @@ def get_pcpd_advice(query, is_zh):
     query = query.lower()
     advice = []
     
-    # 邏輯分流：必須命中關鍵字才提供指引 (System Boundary Control)
-    keywords = ["策略", "管治", "風險", "監督", "採購", "第三方", "api", "披露", "透明度", "解釋", "影子", "shadow", "跨境", "cross-border", "saas", "vendor", "hr", "招聘"]
+    # 擴充關鍵字白名單，確保涵蓋員工行為與實務數據操作
+    keywords = [
+        "策略", "管治", "風險", "監督", "採購", "第三方", "api", "披露", "透明度", "解釋", 
+        "影子", "shadow", "跨境", "cross-border", "saas", "vendor", "hr", "招聘", "考績",
+        "私自", "私下", "員工", "上傳", "名單", "客戶", "資料", "數據", "外洩", "安全", "pii"
+    ]
+    
     if not any(w in query for w in keywords):
         advice.append({
             "title": "🛑 超出審查範圍 / 拒絕作答 (Out of Scope)",
@@ -106,32 +126,39 @@ def get_pcpd_advice(query, is_zh):
         })
         return advice
 
-    # Shadow AI
-    if any(w in query for w in ["影子", "shadow", "私下", "員工自行", "繞過", "未授權", "偷偷", "unauthorized", "bypass"]):
+    # Shadow AI 違規操作
+    if any(w in query for w in ["影子", "shadow", "私下", "私自", "員工自行", "繞過", "未授權", "偷偷", "unauthorized", "bypass", "上傳"]):
         advice.append({
-            "title": "🚨 影子 AI 違規操作 (Shadow AI Breach)" if is_zh else "🚨 Shadow AI Breach",
-            "content": "直接違反《私隱條例》保障資料第 4 原則（資料保安）。董事會必須立即啟動技術阻斷 (如部署 CASB) 並修訂《可接受使用政策》(AUP)。" if is_zh else "Directly violates DPP 4 (Data Security). The Board must immediately deploy technical blocking (e.g., CASB) and update the Acceptable Use Policy (AUP)."
+            "title": "🚨 影子 AI 違規操作與資料保安危機 (Shadow AI Breach)" if is_zh else "🚨 Shadow AI Breach & Data Security Crisis",
+            "content": "直接違反《私隱條例》保障資料第 4 原則（資料保安）。董事會必須立即啟動技術阻斷 (如部署 CASB) 並修訂《可接受使用政策》(AUP)，嚴禁將未經匿名化的 PII 輸入外部 AI 工具。" if is_zh else "Directly violates DPP 4 (Data Security). The Board must immediately deploy technical blocking (e.g., CASB) and update the Acceptable Use Policy (AUP) to strictly prohibit inputting unanonymised PII into external AI tools."
         })
     
-    # TPRM
+    # TPRM 採購與第三方風險
     if any(w in query for w in ["第三方", "api", "廠商", "saas", "外購", "vendor", "third party", "procure"]):
         advice.append({
             "title": "⚙️ 採購 AI 方案的管治與第三方風險管理 (TPRM)" if is_zh else "⚙️ AI Procurement & Third-Party Risk Management (TPRM)",
             "content": "依據《模範框架》第 16 及 44 條，無法獲取底層細節時，管治核心全面轉向合約約束：簽署資料處理者協議 (DPA)、確立責任轉嫁及 AI 事故應變計劃 (Kill Switch)。" if is_zh else "Per Model Framework Para 16 & 44, when lacking underlying access, governance pivots to contractual protections: DPA, liability transfer, and AI Incident Response Plans (Kill Switch)."
         })
         
-    # Cross-border
+    # Cross-border 跨境資料流動
     if any(w in query for w in ["跨境", "歐盟", "eu", "中港", "海外", "cross-border", "transfer"]):
         advice.append({
             "title": "🔴 多法域重疊管轄與跨境傳輸風險 (Overlapping Jurisdictions)" if is_zh else "🔴 Overlapping Jurisdictions & Cross-Border Risks",
             "content": "依據《模範框架》第 14 頁：將個人資料轉移予外地資料處理者，必須採用合約規範保障資料保安。若遇歐盟等法規，需簽發標準契約條款 (SCCs) 應對多法域衝突。" if is_zh else "Per Model Framework P.17: Cross-border data transfers to overseas processors require contractual safeguards. Standard Contractual Clauses (SCCs) may be needed for dual compliance."
         })
         
-    # HR / High Risk
-    if any(w in query for w in ["hr", "招聘", "考績", "解僱", "信貸", "醫療", "hire", "performance", "medical"]):
+    # HR / High Risk 核心高風險應用
+    if any(w in query for w in ["hr", "招聘", "考績", "解僱", "信貸", "醫療", "hire", "performance", "medical", "評估", "評核"]):
         advice.append({
             "title": "👥 高風險用例與人為監督 (High-Risk & Human Oversight)" if is_zh else "👥 High-Risk Use Case & Human Oversight",
-            "content": "依據《模範框架》第 32 條，高風險 AI 系統應強制採取「人在環中」(Human-in-the-loop) 方式。完全自動化將導致違規的「合規幻覺」。同時需防範演算法間接歧視觸犯《僱傭條例》。" if is_zh else "Per Model Framework Para 32, High-Risk AI must enforce a 'Human-in-the-loop' approach. Fully automated decisions risk severe compliance illusions and algorithmic bias."
+            "content": "依據《模範框架》第 32 條，高風險 AI 系統應強制採取「人在環中」(Human-in-the-loop) 方式。完全自動化將導致違規的「合規幻覺」。同時需防範演算法間接歧視觸犯香港相關反歧視或僱傭條例。" if is_zh else "Per Model Framework Para 32, High-Risk AI must enforce a 'Human-in-the-loop' approach. Fully automated decisions risk severe compliance illusions and algorithmic bias, potentially violating employment ordinances."
+        })
+
+    # 若關鍵字通過但未觸發上述特定場景 (Fallback)
+    if not advice:
+        advice.append({
+            "title": "🔍 系統就緒 (System Ready)",
+            "content": "已接收您的關鍵字。請提供更具體的行為描述（例如：HR 篩選履歷、第三方 SaaS 採購、員工私自使用開源模型等），以便系統為您精準映射 PCPD 官方指引。" if is_zh else "Keywords received. Please describe a specific action (e.g., HR screening, SaaS procurement, unauthorized Shadow AI usage) for precise PCPD Model Framework mapping."
         })
 
     return advice
@@ -151,7 +178,7 @@ tab_chat, tab_audit = st.tabs([
 # 軌道一：智能情境 Chatbox
 # ------------------------------------------
 with tab_chat:
-    st.markdown("請描述您在企業中遇到的 AI 管治情境（例如：員工私自上傳客戶名單、採購海外 API 系統），系統將為您進行風險拆解：" if is_zh else "Describe your AI governance scenario, and the system will map the risks:")
+    st.markdown("請描述您在企業中遇到的 AI 管治情境（例如：員工私自上傳客戶名單、採購海外 API 系統），系統將為您進行風險拆解：" if is_zh else "Describe your AI governance scenario (e.g., employee secretly uploading client list to an external AI), and the system will map the risks:")
     
     for msg in st.session_state.chat_messages:
         with st.chat_message(msg["role"]):
