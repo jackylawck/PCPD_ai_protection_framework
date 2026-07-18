@@ -116,7 +116,8 @@ def get_pcpd_advice(query, is_zh):
     keywords = [
         "策略", "管治", "風險", "監督", "採購", "第三方", "api", "披露", "透明度", "解釋", 
         "影子", "shadow", "跨境", "cross-border", "saas", "vendor", "hr", "招聘", "考績",
-        "私自", "私下", "員工", "上傳", "名單", "客戶", "資料", "數據", "外洩", "安全", "pii"
+        "私自", "私下", "員工", "上傳", "名單", "客戶", "資料", "數據", "外洩", "安全", "pii",
+        "解僱", "評核", "評估", "信貸", "醫療"
     ]
     
     if not any(w in query for w in keywords):
@@ -288,7 +289,7 @@ with tab_audit:
                 st.warning("🚨 **核心治理分支切換：第三方 SaaS / 廠商 API 採購軌道 (TPRM Route Active)**" if is_zh else "🚨 **Governance Branch: Third-Party SaaS / Vendor API Track (TPRM Route Active)**")
                 tp1 = st.checkbox("【資料處理者協議 DPA】明文禁止廠商將 PII 用作其模型二次訓練（符合《模範框架》第 16 及 44 條）。" if is_zh else "[Data Processor DPA] Signed formal DPA strictly prohibiting vendors from using PII for secondary model training.")
                 tp2 = st.checkbox("【合約責任轉嫁】明訂當廠商系統產生不當偏見或資料外洩時的法律責任歸屬（符合《模範框架》第 18 條）。" if is_zh else "[Liability Transfer] Contract clearly dictates liability for bias or data breaches (Para 18).")
-                tp3 = st.checkbox("【AI 事故暫停機制】具備一鍵「暫停」系統連線能力（符合《模範框架》第 46 及 49 條） 。" if is_zh else "[AI Incident Kill Switch] AI Incident Response Plan established with capabilities to 'pause' system connections.")
+                tp3 = st.checkbox("【AI 事故暫停機制】具備一鍵「暫停」系統連線能力與事故應變計劃（符合《模範框架》第 46 及 49 條） 。" if is_zh else "[AI Incident Kill Switch] AI Incident Response Plan established with capabilities to 'pause' system connections.")
                 st.progress((sum([tp1, tp2, tp3]) / 3))
                 
             else:
@@ -296,11 +297,11 @@ with tab_audit:
                 st.markdown("**請勾選已落實之開發期控制措施（依據 PCPD 2024《模範框架》第三部「數據準備與定製實施」）：**" if is_zh else "**Please check implemented development controls (per PCPD 2024 Model Framework Part III):**")
                 in1 = st.checkbox("【資料最少化】移除或假名化無關之敏感特徵（符合《模範框架》第 41(ii) 條規範）。" if is_zh else "[Data Minimisation] Removed or pseudonymised irrelevant sensitive features from fine-tuning datasets.")
                 in2 = st.checkbox("【私隱增強技術】評估或採用差分私隱、合成數據等 PETs 技術。" if is_zh else "[PETs] Evaluated/adopted Privacy Enhancing Technologies (e.g., differential privacy).")
-                in3 = st.checkbox("【防範模型漂移】建立內部日誌監控，防止模型表現隨時間衰退（符合《模範框架》第 48(v) 條規範）。" if is_zh else "[Model Drift Prevention] Establish internal log monitoring to prevent 'Model Drift' over time.")
+                in3 = st.checkbox("【防範模型漂移與投毒】建立內部日誌監控與紅隊演練，防止模型表現衰退或遭對抗式攻擊（符合《模範框架》第 46(i) 與 48(v) 條規範）。" if is_zh else "[Security & Drift Prevention] Establish red teaming against adversarial attacks and monitor to prevent 'Model Drift' over time (Para 46 & 48).")
                 st.progress((sum([in1, in2, in3]) / 3))
 
         with sub_tab3:
             st.subheader("第四部：與持份者的溝通及交流" if is_zh else "Part IV: Communication and Engagement with Stakeholders")
             st.markdown("- **顯著披露 (Prominent Disclosure)：** 向受影響群體清楚且顯著地披露 AI 系統的使用情況與介入程度（符合《模範框架》第 53 條）。" if is_zh else "- **Prominent Disclosure:** Clearly disclose the use and level of AI involvement to affected groups (Para 53).")
-            st.markdown("- **局部可解釋性與救濟途徑 (Redress Mechanism)：** 若決策對個人產生重大影響，機構**必須提供人為介入的選項**，容許當事人表達反饋、尋求解釋並要求合規人員重新審視（符合《模範框架》第 56 條）。" if is_zh else "- **Local Explainability & Redress:** Provide human intervention options for feedback, explanation, and human review (Para 56).")
-            st.markdown("- **淺白語言 (Plain Language)：** 所有私隱政策與通知應使用淺白的語言（符合《模範框架》第 60 條）。" if is_zh else "- **Plain Language:** All privacy policies/notices must be expressed in plain, clear, and understandable language (Para 60).")
+            st.markdown("- **全局與局部可解釋性 (Global & Local Explainability)：** 若決策對個人產生重大影響，機構**必須提供人為介入的選項**，容許當事人尋求解釋並要求合規人員重新審視（符合《模範框架》第 56 與 58 條）。" if is_zh else "- **Explainability & Redress:** Provide human intervention options for feedback, explanation, and human review (Para 56 & 58).")
+            st.markdown("- **淺白語言 (Plain Language)：** 所有私隱政策與通知應使用淺白的語言，並設法讓持份者知悉（符合《模範框架》第 60 條）。" if is_zh else "- **Plain Language:** All privacy policies/notices must be expressed in plain, clear, and understandable language (Para 60).")
