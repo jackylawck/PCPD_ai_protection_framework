@@ -68,11 +68,10 @@ OVERSIGHT_OPTIONS = {
 }
 
 # ==========================================
-# 3. Sidebar UI (邊界鎖定與免責聲明)
+# 3. Sidebar UI (邊界鎖定、專業聯絡與免責聲明)
 # ==========================================
 with st.sidebar:
-    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/Emblem_of_Hong_Kong.svg/120px-Emblem_of_Hong_Kong.svg.png", width=80)
-    st.title("PCPD AI Auditor")
+    st.markdown("## 🏛️ PCPD AI Auditor")
     
     st.header("🌐 UI Language / 介面語言")
     lang_choice = st.radio("Select Language / 選擇語言", ['繁體中文', 'English'], index=0 if st.session_state.lang == '繁體中文' else 1, label_visibility="collapsed")
@@ -117,7 +116,7 @@ def get_pcpd_advice(query, is_zh):
         "策略", "管治", "風險", "監督", "採購", "第三方", "api", "披露", "透明度", "解釋", 
         "影子", "shadow", "跨境", "cross-border", "saas", "vendor", "hr", "招聘", "考績",
         "私自", "私下", "員工", "上傳", "名單", "客戶", "資料", "數據", "外洩", "安全", "pii",
-        "解僱", "評核", "評估", "信貸", "醫療"
+        "解僱", "評核", "評充", "評估", "信貸", "醫療"
     ]
     
     if not any(w in query for w in keywords):
@@ -138,7 +137,7 @@ def get_pcpd_advice(query, is_zh):
     if any(w in query for w in ["第三方", "api", "廠商", "saas", "外購", "vendor", "third party", "procure"]):
         advice.append({
             "title": "⚙️ 採購 AI 方案的管治與第三方風險管理 (TPRM)" if is_zh else "⚙️ AI Procurement & Third-Party Risk Management (TPRM)",
-            "content": "依據《模範框架》第 16 及 44 條，無法獲取底層細節時，管治核心全面轉向合約約束：簽署資料處理者協議 (DPA)、確立責任轉嫁及 AI 事故應變計劃 (Kill Switch)。" if is_zh else "Per Model Framework Para 16 & 44, when lacking underlying access, governance pivots to contractual protections: DPA, liability transfer, and AI Incident Response Plans (Kill Switch)."
+            "content": "依據《模範框架》第 16 及 44 條，無法獲取底層細節時，管治核心全面轉向合約约束：簽署資料處理者協議 (DPA)、確立責任轉嫁及 AI 事故應變計劃 (Kill Switch)。" if is_zh else "Per Model Framework Para 16 & 44, when lacking underlying access, governance pivots to contractual protections: DPA, liability transfer, and AI Incident Response Plans (Kill Switch)."
         })
         
     # Cross-border 跨境資料流動
