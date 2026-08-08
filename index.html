@@ -11,21 +11,21 @@
     <meta name="google-site-verification" content="JZ5UohX-CcP_fQV0_DI9VadkKY4ZoTTkUifL88-fIcY" />
     
     <!-- 精準 SEO 設定 (Google 搜尋結果格式優化) -->
-    <title>香港僱傭條例 RAG 合規 Advisor | Cap. 57 Compliance Workstation</title>
-    <meta name="description" content="香港《僱傭條例》(Cap. 57) 企業級 RAG AI 合規諮詢工作站。結合本地隱私保護與 RAG 向量資料庫，提供「468」新制、12個月平均工資 (ADW 713)、即時解僱風險防禦與密碼學審計追溯。Enterprise AI compliance advisor for HK Employment Ordinance with Privacy-by-Design Local RAG.">
-    <meta name="keywords" content="Cap 57, 香港僱傭條例, 勞工法例, 468新制, 連續性合約, ADW, 713條例, 平均工資, ISO 42001, AI Governance, Privacy-by-Design, Zero Data Retention, FAISS, Streamlit, 羅子淇, Jacky Law">
+    <title>PCPD AI Protection Framework Evaluator | 決定性預審門神沙盒</title>
+    <meta name="description" content="香港企業級 AI 私隱管治與預審診斷工作站 — 對齊個人資料私隱專員公署 (PCPD) 2024《人工智能：個人資料保障模範框架》與 ISO 42001。具備 100% 決定性硬化防禦網閘、邊界控管與密碼學審計軌跡。Enterprise AI governance pre-audit gatekeeper.">
+    <meta name="keywords" content="PCPD 2024, 個人資料私隱專員公署, 個人資料保障模範框架, ISO 42001, AI Governance, AI管治, 決定性預審, Privacy-by-Design, Zero Data Retention, 羅子淇, Jacky Law">
     <meta name="author" content="Jacky Law 羅子淇 (https://jackylawck.github.io/jackylawck/)">
     <link rel="author" href="https://jackylawck.github.io/jackylawck/" />
     <link rel="me" href="https://jackylawck.github.io/jackylawck/" />
 
     <!-- Open Graph 社群與多語言標籤 -->
-    <meta property="og:title" content="HK Cap. 57 Employment Ordinance RAG Advisor | 香港僱傭條例 AI 合規工作站">
-    <meta property="og:description" content="企業級香港《僱傭條例》AI 診斷工具 — 具備動態防禦網閘、468新制對比、ADW 713 剔除期精算與密碼學審計追溯。Enterprise Privacy-Preserving Legal Tech.">
-    <meta property="og:url" content="https://jackylawck.github.io/hk-employment-ordinance/">
+    <meta property="og:title" content="PCPD AI Protection Framework Evaluator | 決定性預審門神沙盒">
+    <meta property="og:description" content="香港企業級 AI 私隱管治與預審診斷工作站 — 具備 100% 決定性防禦網閘、邊界控管與 ISO 42001 密碼學審計軌跡。Enterprise Privacy-Preserving AI Governance.">
+    <meta property="og:url" content="https://jackylawck.github.io/PCPD_ai_protection_framework/">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="zh_HK">
     <meta property="og:locale:alternate" content="en_US">
-    <link rel="canonical" href="https://hk-employment-ordinance.streamlit.app/" />
+    <link rel="canonical" href="https://pcpd-ai-protection-framework.streamlit.app/" />
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -51,13 +51,13 @@
     <nav class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
         <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
             <div class="font-bold text-lg tracking-tight text-white flex items-center gap-2">
-                <span>⚖️ Cap. 57 RAG Advisor</span>
-                <span class="text-xs text-sky-400 font-normal border border-sky-800/60 bg-sky-950/40 px-2 py-0.5 rounded">v2.1 ISO-Ready</span>
+                <span>🏛️ PCPD Framework Evaluator</span>
+                <span class="text-xs text-sky-400 font-normal border border-sky-800/60 bg-sky-950/40 px-2 py-0.5 rounded">v1.0 ISO-Ready</span>
             </div>
             <div class="flex items-center space-x-6 text-sm font-medium text-slate-400">
                 <a href="#features" class="hover:text-sky-400 transition-colors">Features / 核心特色</a>
                 <a href="#security" class="hover:text-sky-400 transition-colors">Governance / 資安管治</a>
-                <a href="https://github.com/jackylawck/hk-employment-ordinance" target="_blank" class="hover:text-white transition-colors">GitHub Repo</a>
+                <a href="https://github.com/jackylawck/PCPD_ai_protection_framework" target="_blank" class="hover:text-white transition-colors">GitHub Repo</a>
             </div>
         </div>
     </nav>
@@ -67,29 +67,29 @@
         <div class="max-w-3xl">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-400 text-xs font-semibold mb-6">
                 <span class="flex h-2 w-2 rounded-full bg-sky-400 animate-pulse"></span>
-                Enterprise Legal Tech & AI Governance | 香港法規 AI 治理與防禦
+                Enterprise AI Compliance & Governance Gatekeeper | 香港 AI 私隱治理與預審門神
             </div>
             <h1 class="text-4xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight mb-6">
-                香港僱傭條例 RAG Advisor<br>
-                <span class="text-sky-400 text-3xl sm:text-4xl">Cap. 57 Compliance Workstation</span>
+                PCPD AI Protection Framework Evaluator<br>
+                <span class="text-sky-400 text-3xl sm:text-4xl">方案 A：決定性預審門神沙盒</span>
             </h1>
             
             <div class="space-y-3 text-slate-300 leading-relaxed mb-8">
                 <p class="text-base sm:text-lg">
-                    企業級香港《僱傭條例》(Cap. 57) AI 診斷工作站 — 結合本地 Privacy-Preserving 混合 RAG 架構，提供 100% 決定性法規防禦網閘、最新「468」連續性合約對比與 ADW 713 條例精算導航。
+                    企業級香港 PCPD 2024《人工智能：個人資料保障模範框架》預審工作站 — 採用 100% 決定性規則樹 (Rule-Based Regex Tree)，徹底消除大語言模型 (LLM) 機率型幻覺，為 HR 及法務團隊提供即時風險分流與邊界控制。
                 </p>
                 <p class="text-sm sm:text-base text-slate-400 italic">
-                    Enterprise-grade regulatory compliance workstation powered by a local privacy-preserving Retrieval-Augmented Generation (RAG) architecture. Features SHA-256 audit traceability and deterministic rule guardrails.
+                    Enterprise pre-audit risk classification workstation implementing PCPD 2024 AI Protection Framework and ISO 42001 standards. Features deterministic decision engines, non-privacy domain refusal, and cryptographic audit hashing.
                 </p>
             </div>
             
             <!-- 行動按鈕 -->
             <div class="flex flex-wrap gap-4 justify-center sm:justify-start">
-                <a href="https://hk-employment-ordinance.streamlit.app" target="_blank" rel="noopener" class="px-8 py-4 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold transition-all shadow-lg shadow-sky-600/30 flex items-center gap-2">
-                    🚀 即刻體驗 Web App / Launch Advisor
+                <a href="https://pcpd-ai-protection-framework.streamlit.app" target="_blank" rel="noopener" class="px-8 py-4 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold transition-all shadow-lg shadow-sky-600/30 flex items-center gap-2">
+                    🚀 即刻體驗 Web App / Launch Sandbox
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                 </a>
-                <a href="https://github.com/jackylawck/hk-employment-ordinance" target="_blank" rel="noopener" class="px-6 py-4 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 font-medium transition-all">
+                <a href="https://github.com/jackylawck/PCPD_ai_protection_framework" target="_blank" rel="noopener" class="px-6 py-4 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 font-medium transition-all">
                     GitHub Source Code
                 </a>
             </div>
@@ -104,9 +104,9 @@
             <span class="px-3 py-1 rounded-full text-xs font-mono bg-sky-950/60 text-sky-400 border border-sky-800/50">iso-42001</span>
             <span class="px-3 py-1 rounded-full text-xs font-mono bg-sky-950/60 text-sky-400 border border-sky-800/50">privacy-by-design</span>
             <span class="px-3 py-1 rounded-full text-xs font-mono bg-sky-950/60 text-sky-400 border border-sky-800/50">zero-data-retention</span>
-            <span class="px-3 py-1 rounded-full text-xs font-mono bg-sky-950/60 text-sky-400 border border-sky-800/50">local-rag</span>
-            <span class="px-3 py-1 rounded-full text-xs font-mono bg-slate-800 text-slate-300 border border-slate-700">hk-employment-ordinance</span>
-            <span class="px-3 py-1 rounded-full text-xs font-mono bg-slate-800 text-slate-300 border border-slate-700">cap57</span>
+            <span class="px-3 py-1 rounded-full text-xs font-mono bg-sky-950/60 text-sky-400 border border-sky-800/50">deterministic-ai</span>
+            <span class="px-3 py-1 rounded-full text-xs font-mono bg-slate-800 text-slate-300 border border-slate-700">pcpd-2024</span>
+            <span class="px-3 py-1 rounded-full text-xs font-mono bg-slate-800 text-slate-300 border border-slate-700">pdpo-cap486</span>
         </div>
     </section>
 
@@ -116,26 +116,26 @@
         <div class="grid md:grid-cols-3 gap-6">
             <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 space-y-3">
                 <div class="text-3xl">🛡️</div>
-                <h3 class="text-lg font-bold text-white">決定性法規防禦網閘<br><span class="text-xs text-sky-400 font-normal">Deterministic Control Guardrails</span></h3>
+                <h3 class="text-lg font-bold text-white">100% 決定性預審硬化<br><span class="text-xs text-sky-400 font-normal">Zero LLM Hallucination</span></h3>
                 <p class="text-sm text-slate-400 leading-relaxed">
-                    針對「即時解僱 s.9」、「468 新制」與「ADW 713 剔除期」等高風險情境，自動啟動 100% 置信度決定性硬化攔截，杜絕 RAG 機率型幻覺。<br>
-                    <span class="text-xs text-slate-500 block mt-1">Bypasses probabilistic retrieval for high-risk legal scenarios, providing 100% deterministic compliance advice.</span>
+                    採用正規表達式與布林決策樹，徹底排除 LLM 生成式的隨機性與幻覺，為 PCPD 4 大領域與 60+ 核心段落提供確定的預審判定。<br>
+                    <span class="text-xs text-slate-500 block mt-1">Eliminates probabilistic inference through rigid rule-based engines, ensuring zero hallucination for pre-audit risk classification.</span>
                 </p>
             </div>
             <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 space-y-3">
-                <div class="text-3xl">📚</div>
-                <h3 class="text-lg font-bold text-white">562 切片全量語意索引<br><span class="text-xs text-sky-400 font-normal">562 Verified Vector Chunks</span></h3>
+                <div class="text-3xl">🚫</div>
+                <h3 class="text-lg font-bold text-white">管轄邊界自動硬性攔截<br><span class="text-xs text-sky-400 font-normal">Boundary Enforcement Guardrails</span></h3>
                 <p class="text-sm text-slate-400 leading-relaxed">
-                    完整解構勞工處官方中英文指南與修訂 FAQ，提供頁碼級別之條文審計追溯鏈 (Traceability Link)。<br>
-                    <span class="text-xs text-slate-500 block mt-1">Deconstructs official Labour Department guides into 562 FAISS chunks with page-level source tracing.</span>
+                    精準偵測非私隱條例管轄範圍（如勞工法例、性別歧視、版權歸屬），自動觸發拒絕評估機制，維護管治審計的嚴謹性。<br>
+                    <span class="text-xs text-slate-500 block mt-1">Hardcoded refusal mechanisms intercept out-of-scope inquiries to maintain legal precision and risk integrity.</span>
                 </p>
             </div>
             <div class="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 space-y-3">
                 <div class="text-3xl">🔒</div>
                 <h3 class="text-lg font-bold text-white">密碼學審計軌跡紀錄<br><span class="text-xs text-sky-400 font-normal">Cryptographic SHA-256 Audit Trail</span></h3>
                 <p class="text-sm text-slate-400 leading-relaxed">
-                    每筆查詢生成 ISO 42001 對齊之 SHA-256 哈希值與標準 UTC 時間戳，確保企業內部 HR 診斷具備不可篡改性。<br>
-                    <span class="text-xs text-slate-500 block mt-1">Generates cryptographic SHA-256 audit hashes with UTC timestamps for enterprise internal control and compliance audits.</span>
+                    每筆預審查詢即時生成對齊 ISO 42001 之 SHA-256 哈希值與 UTC 時間戳，確保企業內部 AI 評估紀錄具備不可篡改性與可審計性。<br>
+                    <span class="text-xs text-slate-500 block mt-1">Generates unique SHA-256 audit hashes for every compliance check, supporting non-repudiation and ISO 42001 verification.</span>
                 </p>
             </div>
         </div>
@@ -151,15 +151,15 @@
                 <div class="space-y-2">
                     <h4 class="font-semibold text-sky-400 text-base">🔒 零數據留存 (Zero Data Retention / ZDR)</h4>
                     <p class="leading-relaxed text-slate-400">
-                        採用純 Session-Only 記憶體運算架構。用戶查詢與臨時上傳之 PDF 檔案絕不儲存於任何硬碟或資料庫，會話一經關閉即刻徹底銷毀。<br>
-                        <span class="text-xs text-slate-500 block mt-1">Session-only in-memory architecture. Queries and temporary uploads are never persisted to disk and are destroyed upon session termination.</span>
+                        採用純 Session-Only 記憶體運算架構。用戶輸入之預審情境絕不儲存於任何硬碟或雲端資料庫，會話關閉即刻徹底銷毀。<br>
+                        <span class="text-xs text-slate-500 block mt-1">Session-only in-memory processing. User scenarios are evaluated dynamically and destroyed instantly upon session closure.</span>
                     </p>
                 </div>
                 <div class="space-y-2">
-                    <h4 class="font-semibold text-sky-400 text-base">🔒 數據最小化與日誌脫敏 (Data Minimization)</h4>
+                    <h4 class="font-semibold text-sky-400 text-base">🔒 數據最小化與 PII 隔離 (Data Minimization)</h4>
                     <p class="leading-relaxed text-slate-400">
-                        後台日誌嚴格落實脫敏機制，僅記錄不可逆之 SHA-256 雜湊值，絕對不寫入使用者 Prompt 原始文字，完全對齊私隱條例規範。<br>
-                        <span class="text-xs text-slate-500 block mt-1">Backend audit logs store only cryptographic hashes, stripping raw user prompts to guarantee privacy compliance.</span>
+                        系統僅接收管理情境描述，設計上徹底隔離個人識別資訊 (PII)。後台日誌僅儲存不可逆之 SHA-256 哈希值，完全對齊私隱條例。<br>
+                        <span class="text-xs text-slate-500 block mt-1">Ingests scenario descriptions only, strictly isolating PII. Audit logs preserve privacy by storing cryptographic hashes only.</span>
                     </p>
                 </div>
             </div>
@@ -168,7 +168,7 @@
 
     <!-- Code-level credit for SEO crawlers: Developed by Jacky Law 羅子淇 (https://jackylawck.github.io/jackylawck/) -->
     <footer class="border-t border-slate-900 py-8 px-6 text-center text-xs text-slate-600">
-        <p>© 2026 Cap. 57 RAG Advisor. Released under the Apache-2.0 License.</p>
+        <p>© 2026 PCPD AI Protection Framework Evaluator. Released under Creative Commons CC BY 4.0 / Open Source Governance Protocol.</p>
     </footer>
 
 </body>
