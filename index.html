@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCPD AI Protection Framework Evaluator | Deterministic Pre-Audit Gatekeeper</title>
+    
+    <!-- SEO Meta Tags (Bilingual) -->
+    <meta name="description" content="Enterprise Hong Kong AI Governance Pre-Audit Evaluator aligned with PCPD 2024 AI Protection Framework and ISO 42001 standards. Features rule-based deterministic risk tiering and zero LLM hallucination. 香港企業級 AI 私隱合規決定性預審門神沙盒。">
+    <meta name="keywords" content="PCPD 2024, AI Protection Framework, ISO 42001, Hong Kong Privacy Ordinance, AI Governance, Deterministic AI, Compliance Audit, 香港個人資料私隱專員公署, AI 管治, 決定性預審">
+    <meta name="author" content="羅子淇 Jacky Law">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://jackylawck.github.io/PCPD_ai_protection_framework/">
+
+    <!-- Open Graph / Social Media Meta -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="PCPD AI Protection Framework Evaluator (Pre-Audit Sandbox)">
+    <meta property="og:description" content="ISO 42001 & PCPD 2024 AI Framework Rule-Based Gatekeeper. Zero LLM Hallucination & Cryptographic Audit Trails.">
+    <meta property="og:url" content="https://jackylawck.github.io/PCPD_ai_protection_framework/">
+
+    <!-- Hidden Schema.org Structured Data for Invisible SEO & Author Attribution -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "PCPD AI Protection Framework Evaluator",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "description": "Deterministic enterprise AI compliance pre-audit gatekeeper implementing PCPD 2024 AI Protection Framework and ISO 42001 standards.",
+      "author": {
+        "@type": "Person",
+        "name": "羅子淇 Jacky Law",
+        "alternateName": "Jacky Law",
+        "url": "https://jackylawck.github.io/jackylawck"
+      },
+      "codeRepository": "https://github.com/jackylawck/PCPD_ai_protection_framework",
+      "programmingLanguage": "Python",
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "sdPublisher": {
+        "@type": "Person",
+        "name": "羅子淇 Jacky Law",
+        "url": "https://jackylawck.github.io/jackylawck"
+      }
+    }
+    </script>
+
+    <!-- UI Styling (Clean Dark Governance Theme) -->
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --border-color: #30363d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --accent-blue: #58a6ff;
+            --accent-green: #2ea043;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+        header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 24px;
+            margin-bottom: 32px;
+        }
+        h1 {
+            font-size: 2.0em;
+            margin: 0 0 10px 0;
+            color: var(--text-primary);
+        }
+        p.subtitle {
+            color: var(--text-secondary);
+            font-size: 1.05em;
+            margin: 0;
+            line-height: 1.5;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            font-size: 0.8em;
+            font-weight: 600;
+            border-radius: 12px;
+            background-color: rgba(56, 139, 253, 0.15);
+            color: var(--accent-blue);
+            margin-bottom: 16px;
+            border: 1px solid rgba(56, 139, 253, 0.4);
+        }
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+        .card h2 {
+            font-size: 1.3em;
+            margin-top: 0;
+            color: var(--accent-blue);
+        }
+        ul {
+            padding-left: 20px;
+            color: var(--text-secondary);
+            font-size: 0.95em;
+            line-height: 1.7;
+        }
+        .btn-group {
+            margin-top: 24px;
+            display: flex;
+            gap: 16px;
+        }
+        .btn {
+            flex: 1;
+            text-align: center;
+            padding: 12px 20px;
+            font-weight: 600;
+            font-size: 0.95em;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .btn-primary {
+            background-color: #238636;
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background-color: #2ea043;
+        }
+        .btn-secondary {
+            background-color: #21262d;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            background-color: #30363d;
+        }
+        footer {
+            margin-top: 40px;
+            border-top: 1px dashed var(--border-color);
+            padding-top: 20px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <span class="badge">Rule-Based Deterministic Gatekeeper</span>
+        <h1>🏛️ PCPD AI Protection Framework Evaluator</h1>
+        <p class="subtitle">Enterprise Pre-Audit Risk Classification Platform aligned with PCPD 2024 AI Protection Framework & ISO 42001 Standards<br>方案 A：決定性預審門神 (對齊香港私隱公署 2024 模範框架與 ISO 42001 審計標準)</p>
+    </header>
+
+    <div class="card">
+        <h2> Key Architecture & Governance Features</h2>
+        <ul>
+            <li><strong>Zero Non-Determinism (100% 決定性合規):</strong> Eliminates LLM non-deterministic hallucination through explicit Regular Expression (Regex) and Boolean decision trees. (徹底消滅 LLM 幻覺)</li>
+            <li><strong>Boundary Control (硬性界限控制):</strong> Hardcoded refusal triggers for non-privacy legal inquiries (e.g., Employment Ordinance, Copyright / IP law). (超出私隱條例管轄範圍自動拒絕)</li>
+            <li><strong>ISO 42001 Cryptographic Audit Trail:</strong> Generates unique SHA-256 audit hashes for every query transaction to ensure non-repudiation. (密碼學不可否認審計軌跡)</li>
+            <li><strong>Data Sovereignty & Zero Retention:</strong> 100% In-memory evaluation. Zero personal identifiable information (PII) ingestion or cloud storage. (資料不落地)</li>
+        </ul>
+
+        <div class="btn-group">
+            <a href="https://pcpd-ai-protection-framework.streamlit.app" target="_blank" class="btn btn-primary"> Launch Interactive Sandbox</a>
+            <a href="https://github.com/jackylawck/PCPD_ai_protection_framework" target="_blank" class="btn btn-secondary"> View Source & Audit Docs</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>🔒 Privacy by Design & Zero Data Retention Architecture • Aligned with ISO 42001 AI Management System (AIMS)</p>
+    </footer>
+</div>
+
+</body>
+</html>
