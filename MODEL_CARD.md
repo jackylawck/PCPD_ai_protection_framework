@@ -15,7 +15,7 @@
 * **System Name / 系統名稱**: PCPD AI Protection Framework Deterministic Evaluator (方案 A：決定性預審沙盒)
 * **Model Version / 模型版本**: v1.0.0 (Production Sandbox / 生產沙盒版)
 * **System Type / 系統類型**: Rule-based Deterministic Expert System / Pre-audit Gatekeeper (基於規則之決定性專家系統 / 預審門神)
-* **Primary Developer & Governance Lead / 主開發者與管治負責人**: Jacky Law 羅子淇 (Certified ISO 42001 Lead Auditor / AIGP Candidate)
+* **Primary Developer & Governance Lead / 主開發者與管治負責人**: Jacky Law 羅子淇
 * **Last Audit Date / 最近審計日期**: 2026-07-30
 * **Repository / 程式碼倉庫**: [jackylawck/PCPD_ai_protection_framework](https://github.com/jackylawck/PCPD_ai_protection_framework)
 
